@@ -1678,5 +1678,12 @@
   "地城頭目的重生時間由遊戲直接提供(精準),且是伺服器端資料,不需玩家在附近。": "Dungeon boss respawn times come straight from the game (exact), and are server-side data — no player needs to be nearby.",
   "目前沒有重生中的地城頭目。": "No dungeon bosses are respawning right now.",
   "安裝純伺服器端的 UE4SS Lua 模組,每 15 秒回報野外頭目與地下城頭目的死活與重生時間。模組只讀取遊戲狀態、不改遊戲內容,玩家端不需安裝任何東西。": "Install a server-side UE4SS Lua mod that reports the alive/dead state and respawn times of field bosses and dungeon bosses every 15 seconds. It only reads game state — it changes nothing, and players don't need to install anything.",
-  "目前沒有地下城頭目資料。": "No dungeon boss data yet."
+  "目前沒有地下城頭目資料。": "No dungeon boss data yet." ,
+  "「{label}」是不可復原的操作。\n\n確定要執行 {command} 嗎?": "The selected action cannot be undone.\n\nAre you sure you want to run {command}?",
+  "刪除玩家存檔「{file}」後,該玩家再次加入時會是全新角色。\n\n確定嗎?": "Deleting player save {file} will make that player start as a new character when they next join.\n\nAre you sure?",
+  "套用「{label}」?\n\n{description}\n\n會覆蓋下方欄位,儲存後才寫入檔案。": "Apply {label}?\n\n{description}\n\nThis replaces the fields below and is only written when you save.",
+  "更新到 {version}?\n\nagent 會重新啟動(約數秒),執行中的遊戲伺服器不受影響。": "Update to {version}?\n\nThe agent will restart for a few seconds. Running game servers are not affected.",
+  "清除這個瀏覽器上的暫存資料?\n\n會清掉:已儲存的連線、看過的公告、地圖校正、偏好設定等。\n頁面會重新整理,伺服器與存檔完全不受影響。": "Clear cached browser data?\n\nThis removes saved connections, viewed announcements, map calibration, preferences, and more.\nThe page will reload; servers and saves are unaffected.",
+  "測試版(Beta)可能不穩定,但含較新的功能(例如玩家細節 API)。\n\n確定要安裝最新測試版嗎?": "Beta builds may be unstable, but include newer features such as the player-detail API.\n\nInstall the latest beta build?",
+  "重新產生配對碼?\n\n舊的配對碼與登入連結會立刻失效,已連線的裝置不受影響。": "Generate a new pairing code?\n\nThe previous pairing code and sign-in links will stop working immediately. Connected devices are unaffected."
 }

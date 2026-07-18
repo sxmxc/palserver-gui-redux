@@ -163,7 +163,6 @@ export function ConnectionCard({
               <AddressChip address={`${info.publicIp}:${port}`} secret />
             </Section>
           )}
-          </div>
         </>
       )}
 
