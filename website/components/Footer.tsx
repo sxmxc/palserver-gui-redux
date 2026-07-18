@@ -7,7 +7,7 @@ export default function Footer({ d }: { d: Dictionary['footer'] }) {
   return (
     <footer>
       <div className="wrap">
-        <a className="flogo" href="https://iosoftware.ai" aria-label="io software">
+        <a className="flogo" href="https://github.com/sxmxc/palserver-gui-redux" aria-label="io software">
           <img
             src="/assets/iosoftware-logo-transparent.svg"
             alt="io software"
@@ -22,14 +22,14 @@ export default function Footer({ d }: { d: Dictionary['footer'] }) {
           <a
             className="pal"
             style={{ fontWeight: 700, whiteSpace: 'nowrap' }}
-            href="https://github.com/Dalufishe"
+            href="https://github.com/sxmxc/palserver-gui-redux"
           >
             Eason Lu (Dalufish)
           </a>
           {mid}{' '}
           <span style={{ whiteSpace: 'nowrap' }}>
             ·{' '}
-            <a className="pal" style={{ fontWeight: 700 }} href="https://iosoftware.ai">
+            <a className="pal" style={{ fontWeight: 700 }} href="https://github.com/sxmxc/palserver-gui-redux">
               io software
             </a>
           </span>

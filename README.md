@@ -2,7 +2,7 @@
 
 [繁體中文](README.md) | [简体中文](README.zh-CN.md) | **English** | [日本語](README.ja.md)
 
-<p align="center"><a href="https://palserver-GUI.iosoftware.ai"><b>Official site: palserver-GUI.iosoftware.ai</b></a> — downloads, guides & FAQ</p>
+<p align="center"><a href="https://github.com/sxmxc/palserver-gui-redux"><b>Official site: palserver-GUI.iosoftware.ai</b></a> — downloads, guides & FAQ</p>
 
 **A graphical management tool for Palworld dedicated servers.**
 Run one agent on your host machine, then manage the server from a browser — start the server, tweak settings, watch players, back up saves, install mods, all without touching a command line.
@@ -44,7 +44,7 @@ Browser (React Web UI)
 | **A server admin** — long-term operation, security & automation | [For admins: operations guide](#for-admins-operations-guide) |
 | **A developer** — want to hack on it, send PRs | [For developers: development guide](#for-developers-development-guide) |
 
-If you hit a problem, check the **[FAQ](https://faq.toc.icu/)** first, or ask on [Discord](https://discord.gg/sgMMdUZd3V).
+If you hit a problem, check the **[FAQ](https://github.com/sxmxc/palserver-gui-redux/issues)** first, or ask on [Discord](https://github.com/sxmxc/palserver-gui-redux/issues).
 
 ---
 
@@ -130,7 +130,7 @@ If you hit a problem, check the **[FAQ](https://faq.toc.icu/)** first, or ask on
 
 ## For players: a server in five minutes
 
-> Full illustrated guide (inviting friends, VPN setup): the **[official site](https://palserver-GUI.iosoftware.ai)** and the **[FAQ](https://faq.toc.icu/)**
+> Full illustrated guide (inviting friends, VPN setup): the **[official site](https://github.com/sxmxc/palserver-gui-redux)** and the **[FAQ](https://github.com/sxmxc/palserver-gui-redux/issues)**
 
 1. Download the archive for your OS from [Releases](https://github.com/sxmxc/palserver-gui-redux/releases)
    (`palserver-agent-windows.zip` / `-linux.zip`) and extract it.
@@ -337,11 +337,11 @@ PalDefender features like Pal import rules.
 noncommercial purposes; **any commercial / for-profit use is not permitted** (selling this software, bundling it into a
 paid service, etc.). For commercial licensing contact <contact@iosoftware.ai>.
 
-- **Official site:** <https://palserver-GUI.iosoftware.ai>
-- **FAQ:** <https://faq.toc.icu/>
-- **Discord:** <https://discord.gg/sgMMdUZd3V>
+- **Official site:** <https://github.com/sxmxc/palserver-gui-redux>
+- **FAQ:** <https://github.com/sxmxc/palserver-gui-redux/issues>
+- **Discord:** <https://github.com/sxmxc/palserver-gui-redux/issues>
 - **Save migration:** [docs/MIGRATION.md](docs/MIGRATION.md)
 - **Privacy policy:** [PRIVACY.md](PRIVACY.md)
-- **v1 (no longer maintained):** <https://github.com/Dalufishe/palserver-GUI>
+- **v1 (no longer maintained):** <https://github.com/sxmxc/palserver-gui-redux>
 
-Made with love by [Dalufish](https://github.com/Dalufishe) and the core team.
+Made with love by [Dalufish](https://github.com/sxmxc/palserver-gui-redux) and the core team.

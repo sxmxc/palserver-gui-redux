@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
-import { FiCopy, FiCheck, FiEye, FiEyeOff, FiGlobe, FiExternalLink, FiShield, FiMessageCircle, FiX, FiZap } from "react-icons/fi";
+import { FiCopy, FiCheck, FiEye, FiEyeOff, FiGlobe, FiExternalLink, FiShield, FiX, FiZap } from "react-icons/fi";
 import type { ConnectionInfo } from "@palserver/shared";
 import type { AgentClient } from "./api";
 import { copyText } from "./clipboard";
 import { usePromoConfig } from "./promoConfig";
 import { t, useI18n } from "./i18n";
-import { card, btn as btnPrimary, btnGhost } from "./ui";
+import { card, btnGhost } from "./ui";
 
 /** "How do my friends join?" — the question every host actually asks, laid
  * out for non-technical users: same-network, VPN (Radmin / Tailscale), and
@@ -21,7 +21,7 @@ export function ConnectionCard({
 }) {
   useI18n();
   const [info, setInfo] = useState<ConnectionInfo | null>(null);
-  const { ipService, vpn, playit } = usePromoConfig();
+  const { vpn, playit } = usePromoConfig();
   // 連線方式三選一(每實例記憶);playit 是新手最短路徑,當預設
   const [method, setMethodState] = useState<"playit" | "vpn" | "direct">(
     () => (localStorage.getItem(`palserver.connMethod.${instanceId}`) as "playit" | "vpn" | "direct") || "playit",
@@ -163,32 +163,6 @@ export function ConnectionCard({
               <AddressChip address={`${info.publicIp}:${port}`} secret />
             </Section>
           )}
-          <div className="rounded-xl border-2 border-pal/40 bg-pal/5 p-3">
-            <p className="inline-flex items-center gap-2 text-[13px] font-extrabold">
-              <FiGlobe className="size-4 text-pal" />
-              {t("覺得麻煩?交給我們設定")}
-            </p>
-            <p className="mt-1 text-xs text-ink-muted">
-              {t("連接埠轉發、防火牆、CGNAT⋯⋯公開直連對新手很麻煩,交給我們一次設定到位。")}
-            </p>
-            <div className="mt-2 flex flex-wrap gap-2">
-              <a
-                className={`${btnPrimary} inline-flex items-center gap-1.5`}
-                href={ipService.website}
-                target="_blank"
-                rel="noreferrer"
-              >
-                <FiExternalLink className="size-4" /> {t(ipService.name)}
-              </a>
-              <a
-                className={`${btnGhost} inline-flex items-center gap-1.5`}
-                href={ipService.discord}
-                target="_blank"
-                rel="noreferrer"
-              >
-                <FiMessageCircle className="size-4" /> {t("Discord 詢問")}
-              </a>
-            </div>
           </div>
         </>
       )}

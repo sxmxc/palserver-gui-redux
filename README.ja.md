@@ -2,7 +2,7 @@
 
 [繁體中文](README.md) | [简体中文](README.zh-CN.md) | [English](README.en.md) | **日本語**
 
-<p align="center"><a href="https://palserver-GUI.iosoftware.ai"><b>公式サイト palserver-GUI.iosoftware.ai</b></a> —— ダウンロード・ガイド・FAQ</p>
+<p align="center"><a href="https://github.com/sxmxc/palserver-gui-redux"><b>公式サイト palserver-GUI.iosoftware.ai</b></a> —— ダウンロード・ガイド・FAQ</p>
 
 **Palworld(パルワールド)専用サーバーの GUI 管理ツール。**
 ホストマシンで agent を 1 つ動かし、あとはブラウザからサーバーを管理 —— サーバー起動、設定変更、プレイヤー確認、セーブのバックアップ、MOD 導入まで、コマンドラインは一切不要です。
@@ -44,7 +44,7 @@
 | **サーバー管理者** —— 長期運用・セキュリティ・自動化が気になる | [管理者向け:運用ガイド](#管理者向け運用ガイド) |
 | **開発者** —— コードを触りたい、PR を送りたい | [開発者向け:開発ガイド](#開発者向け開発ガイド) |
 
-困ったらまず **[FAQ](https://faq.toc.icu/)** を見るか、[Discord](https://discord.gg/sgMMdUZd3V) で聞いてください。
+困ったらまず **[FAQ](https://github.com/sxmxc/palserver-gui-redux/issues)** を見るか、[Discord](https://github.com/sxmxc/palserver-gui-redux/issues) で聞いてください。
 
 ---
 
@@ -130,7 +130,7 @@
 
 ## プレイヤー向け:5 分でサーバーを立てる
 
-> 図解つき完全ガイド(友だちの招待、VPN 設定):**[公式サイト](https://palserver-GUI.iosoftware.ai)** と **[FAQ](https://faq.toc.icu/)**
+> 図解つき完全ガイド(友だちの招待、VPN 設定):**[公式サイト](https://github.com/sxmxc/palserver-gui-redux)** と **[FAQ](https://github.com/sxmxc/palserver-gui-redux/issues)**
 
 1. [Releases](https://github.com/sxmxc/palserver-gui-redux/releases) から OS に合ったアーカイブ
    (`palserver-agent-windows.zip` / `-linux.zip`)をダウンロードして展開。
@@ -324,11 +324,11 @@ PALSERVER_IMAGE_VANILLA=palserver/dev-stub:latest pnpm dev:agent
 **商用・営利目的での利用は一切禁止**(本ソフトウェアの販売、有料サービスへの組み込みなど)。
 商用ライセンスは <contact@iosoftware.ai> までご連絡ください。
 
-- **公式サイト:** <https://palserver-GUI.iosoftware.ai>
-- **FAQ:** <https://faq.toc.icu/>
-- **Discord:** <https://discord.gg/sgMMdUZd3V>
+- **公式サイト:** <https://github.com/sxmxc/palserver-gui-redux>
+- **FAQ:** <https://github.com/sxmxc/palserver-gui-redux/issues>
+- **Discord:** <https://github.com/sxmxc/palserver-gui-redux/issues>
 - **セーブデータ移行:** [docs/MIGRATION.md](docs/MIGRATION.md)
 - **プライバシーポリシー:** [PRIVACY.md](PRIVACY.md)
-- **v1(メンテナンス終了):** <https://github.com/Dalufishe/palserver-GUI>
+- **v1(メンテナンス終了):** <https://github.com/sxmxc/palserver-gui-redux>
 
-[Dalufish](https://github.com/Dalufishe) とコアチームが愛を込めて制作。
+[Dalufish](https://github.com/sxmxc/palserver-gui-redux) とコアチームが愛を込めて制作。

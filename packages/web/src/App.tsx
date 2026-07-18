@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { GiSheep, GiEggClutch } from "react-icons/gi";
-import { FiActivity, FiAlertTriangle, FiClock, FiCpu, FiDownload, FiHardDrive, FiHeart, FiHelpCircle, FiPlus, FiServer, FiSettings, FiStar, FiUsers, FiZap } from "react-icons/fi";
+import { FiActivity, FiAlertTriangle, FiClock, FiCpu, FiDownload, FiHardDrive, FiHelpCircle, FiPlus, FiServer, FiSettings, FiStar, FiUsers, FiZap } from "react-icons/fi";
 import { hasFeature } from "@palserver/shared";
 import type { Backend, ExternalWorldCandidate, InstanceStats, InstanceSummary, LiveStatus } from "@palserver/shared";
 import {
@@ -26,9 +26,7 @@ import { MapTab } from "./MapTab";
 import { ConnectFlow } from "./ConnectFlow";
 import { SettingsModal } from "./SettingsModal";
 import { SystemReviewCard } from "./SystemReviewCard";
-import { CreditsModal } from "./CreditsModal";
 import { InstanceDetailPage } from "./InstanceDetail";
-import { Mascot } from "./Mascot";
 import { AnnouncementPopup } from "./AnnouncementModal";
 import { ImportSaveModal } from "./ImportSaveModal";
 import { OPEN_SETTINGS_EVENT, SiteFooter } from "./SiteFooter";
@@ -99,7 +97,6 @@ function Shell({ conn, onDisconnect }: { conn: Connection; onDisconnect: () => v
   const client = useRef(new AgentClient(conn, onDisconnect)).current;
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showSettings, setShowSettings] = useState(false);
-  const [showCredits, setShowCredits] = useState(false);
 
   // 左下角「有新版本」小提醒點下去 → 打開設定視窗(裡頭有 GUI 更新區塊)。
   useEffect(() => {
@@ -130,14 +127,6 @@ function Shell({ conn, onDisconnect }: { conn: Connection; onDisconnect: () => v
           </a>
           <button
             className={`${btnGhost} inline-flex items-center gap-1.5`}
-            onClick={() => setShowCredits(true)}
-            data-testid="open-credits"
-            title={t("感謝名單")}
-          >
-            <FiHeart className="size-4" /> <span className="hidden sm:inline">{t("感謝名單")}</span>
-          </button>
-          <button
-            className={`${btnGhost} inline-flex items-center gap-1.5`}
             onClick={() => setShowSettings(true)}
             data-testid="open-settings"
             title={t("設定")}
@@ -149,7 +138,6 @@ function Shell({ conn, onDisconnect }: { conn: Connection; onDisconnect: () => v
       {showSettings && (
         <SettingsModal client={client} conn={conn} onClose={() => setShowSettings(false)} />
       )}
-      {showCredits && <CreditsModal onClose={() => setShowCredits(false)} />}
       {selectedId ? (
         <InstanceDetailPage
           client={client}
@@ -289,7 +277,6 @@ function Dashboard({ client, onOpen }: { client: AgentClient; onOpen: (id: strin
 
   return (
     <>
-      <Mascot />
       <AnnouncementPopup />
       {error && <p className={errorCls}>{error}</p>}
       {/* 與實例內頁的標題列(啟動/日誌那排)同一水平線:上方不留 margin;

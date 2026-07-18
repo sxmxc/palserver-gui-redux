@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { FiAlertTriangle, FiFileText, FiZap, FiServer, FiExternalLink, FiMail, FiX } from "react-icons/fi";
+import { FiAlertTriangle, FiFileText, FiZap } from "react-icons/fi";
 import {
   ENGINE_CATEGORY_LABELS,
   ENGINE_OPTIONS,
@@ -14,8 +14,6 @@ import type { AgentClient } from "./api";
 import { FileEditor } from "./FileManager";
 import { ConfigCorruptModal } from "./ConfigCorruptModal";
 import { LaunchOptionsCard } from "./LaunchOptionsCard";
-import { usePromoConfig } from "./promoConfig";
-import { useHiddenCards } from "./tabPrefs";
 import { t, useI18n } from "./i18n";
 import { EmptyState, btn, btnGhost, card, errorCls, inputCls } from "./ui";
 
@@ -51,8 +49,6 @@ export function EngineTab({
   const [editingRaw, setEditingRaw] = useState(false);
   const [corrupt, setCorrupt] = useState<FileHealth | null>(null);
   const [dismissed, setDismissed] = useState(false);
-  const { maintenanceService } = usePromoConfig();
-  const [hiddenCards, setHiddenCards] = useHiddenCards();
 
   const refresh = useCallback(async () => {
     try {
@@ -151,45 +147,6 @@ export function EngineTab({
         </div>
         {!status.exists && <p className="text-[13px] text-sun">{status.reason}</p>}
       </div>
-
-      {/* 推廣:不想自己顧效能/維運,交給我們的代管服務(可按叉叉收起,設定→卡片隱藏恢復) */}
-      {!hiddenCards.includes("promo-maintenance") && (
-      <div className="flex flex-col gap-3 rounded-(--radius-cute) border-2 border-pal/30 bg-pal/5 p-4">
-        <div className="flex items-start justify-between gap-2">
-          <h3 className="inline-flex min-w-0 items-center gap-2 text-sm font-extrabold">
-            <FiServer className="size-4 shrink-0 text-pal" /> {t("調校很煩?交給我們維護")}
-          </h3>
-          <button
-            className="-mr-1 -mt-1 rounded-lg p-1 text-ink-muted transition hover:bg-card-soft hover:text-ink"
-            onClick={() => setHiddenCards([...hiddenCards, "promo-maintenance"])}
-            title={t("隱藏此卡片(可在設定恢復)")}
-            aria-label={t("隱藏此卡片(可在設定恢復)")}
-          >
-            <FiX className="size-4" />
-          </button>
-        </div>
-        <p className="text-[13px] text-ink-muted">
-          {t("不想每次改版都自己救火、半夜還要爬起來救伺服器?")}
-          <b className="text-ink">{t(maintenanceService.name)}</b>{t("幫你長期代管維護 ——")} {t(maintenanceService.tagline)}
-        </p>
-        <div className="flex flex-wrap gap-2">
-          <a
-            className={`${btn} inline-flex items-center gap-1.5`}
-            href={maintenanceService.url}
-            target="_blank"
-            rel="noreferrer"
-          >
-            <FiExternalLink className="size-4" /> {t("了解維護方案")}
-          </a>
-          <a
-            className={`${btnGhost} inline-flex items-center gap-1.5`}
-            href={`mailto:${maintenanceService.email}`}
-          >
-            <FiMail className="size-4" /> {t("免費諮詢")}
-          </a>
-        </div>
-      </div>
-      )}
 
       {[...grouped.entries()].map(([category, keys]) => (
         <div key={category} className={card}>

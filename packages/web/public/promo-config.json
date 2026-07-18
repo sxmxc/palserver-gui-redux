@@ -1,22 +1,22 @@
 {
   "company": {
     "name": "io software",
-    "website": "https://iosoftware.ai/",
-    "instagram": "https://www.instagram.com/iosoftware.ai/",
-    "discord": "https://discord.gg/sgMMdUZd3V",
-    "sponsor": "https://buymeacoffee.com/dalufish"
+    "website": "https://github.com/sxmxc/palserver-gui-redux",
+    "instagram": "https://github.com/sxmxc/palserver-gui-redux",
+    "discord": "https://github.com/sxmxc/palserver-gui-redux/issues",
+    "sponsor": "https://github.com/sxmxc/palserver-gui-redux"
   },
   "ipService": {
     "name": "IP 直連設定服務",
-    "website": "https://iosoftware.ai/ip-connect-service",
-    "discord": "https://discord.gg/sgMMdUZd3V"
+    "website": "https://github.com/sxmxc/palserver-gui-redux",
+    "discord": "https://github.com/sxmxc/palserver-gui-redux/issues"
   },
-  "faq": "https://faq.toc.icu/",
+  "faq": "https://github.com/sxmxc/palserver-gui-redux/issues",
   "maintenanceService": {
     "name": "遊戲伺服器維護服務",
-    "url": "https://iosoftware.ai/server-maintain-service",
+    "url": "https://github.com/sxmxc/palserver-gui-redux",
     "tagline": "版本更新、存檔備份、崩潰救援、連線設定,月費制透明計價,維運交給我們。",
-    "email": "contact@iosoftware.ai"
+    "email": "issues@github.com/sxmxc/palserver-gui-redux"
   },
   "vpn": {
     "radmin": {
@@ -35,14 +35,14 @@
   "credits": {
     "developers": [
       {
-        "name": "Dalufish",
+        "name": "palserver GUI Redux",
         "role": "核心開發人員",
-        "url": "https://www.instagram.com/stories/easonlu0303/"
+        "url": "https://github.com/sxmxc/palserver-gui-redux"
       },
       {
         "name": "147",
         "role": "核心團隊維護者",
-        "url": "https://toc.icu"
+        "url": "https://github.com/sxmxc/palserver-gui-redux"
       },
       {
         "name": "墨殘",
@@ -67,6 +67,6 @@
         "url": "https://www.youtube.com/@PXJ"
       }
     ],
-    "donate": "https://buymeacoffee.com/dalufish"
+    "donate": "https://github.com/sxmxc/palserver-gui-redux"
   }
 }

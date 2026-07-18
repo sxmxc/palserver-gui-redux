@@ -40,6 +40,7 @@ const ASSET_PLATFORM: Record<string, string> = {
 };
 
 interface CachedCheck {
+  repo: string;
   latestVersion: string | null;
   releaseUrl: string | null;
   releaseNotes: string | null;
@@ -191,6 +192,7 @@ async function fetchLatestRelease(channel: AgentUpdatePrefs["channel"]): Promise
     const checksums = latest?.assets.find((a) => a.name === CHECKSUMS_ASSET) ?? null;
 
     const info: CachedCheck = {
+      repo: GITHUB_REPO,
       latestVersion: latest ? latest.tag_name.replace(/^v/, "") : null,
       releaseUrl: latest?.html_url ?? null,
       releaseNotes: latest?.body?.trim() || null,
@@ -236,6 +238,7 @@ export async function getUpdateStatus(force = false): Promise<AgentUpdateStatus>
   const cached = readCache();
   const fresh =
     cached &&
+    cached.repo === GITHUB_REPO &&
     cached.channel === prefs.channel &&
     Date.now() - Date.parse(cached.checkedAt) < CHECK_TTL_MS;
   const info = !force && fresh ? cached : await fetchLatestRelease(prefs.channel);

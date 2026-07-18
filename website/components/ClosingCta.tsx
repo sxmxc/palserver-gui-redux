@@ -18,13 +18,13 @@ export default function ClosingCta({ d }: { d: Dictionary['closing'] }) {
               <GitHubIcon />
               GitHub
             </a>
-            <a className="btn btn-g" href="https://discord.gg/sgMMdUZd3V">
+            <a className="btn btn-g" href="https://github.com/sxmxc/palserver-gui-redux/issues">
               Discord
             </a>
           </div>
           <div className="note">
             {d.notePre}
-            <a className="pal" style={{ fontWeight: 800 }} href="https://iosoftware.ai/server-maintain-service">
+            <a className="pal" style={{ fontWeight: 800 }} href="https://github.com/sxmxc/palserver-gui-redux">
               {d.noteLink}
             </a>
             {d.notePost}

@@ -2,7 +2,7 @@
 
 **繁體中文** | [简体中文](README.zh-CN.md) | [English](README.en.md) | [日本語](README.ja.md)
 
-<p align="center"><a href="https://palserver-GUI.iosoftware.ai"><b>官方網站 palserver-GUI.iosoftware.ai</b></a> —— 下載、教學、常見問題</p>
+<p align="center"><a href="https://github.com/sxmxc/palserver-gui-redux"><b>官方網站 palserver-GUI.iosoftware.ai</b></a> —— 下載、教學、常見問題</p>
 
 **幻獸帕魯(Palworld)專用伺服器的圖形化管理工具。**
 在你的主機上跑一支 agent,然後用瀏覽器管理伺服器 —— 開服、改設定、看玩家、備份存檔、裝模組,全都不用碰指令列。
@@ -44,7 +44,7 @@
 | **伺服器管理員** —— 要長期營運、在意安全與自動化 | [給管理員:營運指南](#給管理員營運指南) |
 | **開發者** —— 想改程式、送 PR | [給開發者:開發指南](#給開發者開發指南) |
 
-遇到問題先看 **[常見問題 FAQ](https://faq.toc.icu/)**,或到 [Discord](https://discord.gg/sgMMdUZd3V) 問。
+遇到問題先看 **[常見問題 FAQ](https://github.com/sxmxc/palserver-gui-redux/issues)**,或到 [Discord](https://github.com/sxmxc/palserver-gui-redux/issues) 問。
 
 ---
 
@@ -130,7 +130,7 @@
 
 ## 給玩家:五分鐘開服
 
-> 完整的圖文教學(含邀請朋友、VPN 設定):**[官方網站](https://palserver-GUI.iosoftware.ai)** 與 **[FAQ](https://faq.toc.icu/)**
+> 完整的圖文教學(含邀請朋友、VPN 設定):**[官方網站](https://github.com/sxmxc/palserver-gui-redux)** 與 **[FAQ](https://github.com/sxmxc/palserver-gui-redux/issues)**
 
 1. 到 [Releases](https://github.com/sxmxc/palserver-gui-redux/releases) 下載你系統對應的壓縮檔
    (`palserver-agent-windows.zip` / `-linux.zip`),解壓縮。
@@ -322,11 +322,11 @@ PALSERVER_IMAGE_VANILLA=palserver/dev-stub:latest pnpm dev:agent
 > *License: source-available under PolyForm Noncommercial 1.0.0 — free for personal and
 > noncommercial use; **commercial use is not permitted**. Contact us for commercial licensing.*
 
-- **官方網站:** <https://palserver-GUI.iosoftware.ai>
-- **常見問題:** <https://faq.toc.icu/>
-- **Discord:** <https://discord.gg/sgMMdUZd3V>
+- **官方網站:** <https://github.com/sxmxc/palserver-gui-redux>
+- **常見問題:** <https://github.com/sxmxc/palserver-gui-redux/issues>
+- **Discord:** <https://github.com/sxmxc/palserver-gui-redux/issues>
 - **存檔搬家:** [docs/MIGRATION.md](docs/MIGRATION.md)
 - **隱私權政策:** [PRIVACY.md](PRIVACY.md)
-- **v1(已停止維護):** <https://github.com/Dalufishe/palserver-GUI>
+- **v1(已停止維護):** <https://github.com/sxmxc/palserver-gui-redux>
 
-由 [Dalufish](https://github.com/Dalufishe) 與核心團隊用愛製作。
+由 [Dalufish](https://github.com/sxmxc/palserver-gui-redux) 與核心團隊用愛製作。

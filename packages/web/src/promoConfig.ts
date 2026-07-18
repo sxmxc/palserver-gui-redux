@@ -37,7 +37,7 @@ export interface PromoConfig {
 }
 
 const REMOTE_URL =
-  "https://raw.githubusercontent.com/sxmxc/palserver-gui-redux/main/promo-config.json";
+  "https://raw.githubusercontent.com/sxmxc/palserver-gui-redux/main/packages/web/public/promo-config.json";
 const LOCAL_URL = "/promo-config.json";
 const CACHE_KEY = "palserver.promoConfig";
 
@@ -45,20 +45,20 @@ const CACHE_KEY = "palserver.promoConfig";
 const DEFAULT: PromoConfig = {
   company: {
     name: "io software",
-    website: "https://iosoftware.ai/",
-    instagram: "https://www.instagram.com/iosoftware.ai/",
-    discord: "https://discord.gg/sgMMdUZd3V",
-    sponsor: "https://buymeacoffee.com/dalufish",
+    website: "https://github.com/sxmxc/palserver-gui-redux",
+    instagram: "https://github.com/sxmxc/palserver-gui-redux",
+    discord: "https://github.com/sxmxc/palserver-gui-redux/issues",
+    sponsor: "https://github.com/sxmxc/palserver-gui-redux",
   },
   ipService: {
     name: "IP 直連設定服務",
-    website: "https://iosoftware.ai/ip-connect-service",
-    discord: "https://discord.gg/sgMMdUZd3V",
+    website: "https://github.com/sxmxc/palserver-gui-redux",
+    discord: "https://github.com/sxmxc/palserver-gui-redux/issues",
   },
-  faq: "https://faq.toc.icu/",
+  faq: "https://github.com/sxmxc/palserver-gui-redux/issues",
   maintenanceService: {
     name: "遊戲伺服器維護服務",
-    url: "https://iosoftware.ai/server-maintain-service",
+    url: "https://github.com/sxmxc/palserver-gui-redux",
     tagline: "版本更新、存檔備份、崩潰救援、連線設定,月費制透明計價,維運交給我們。",
     email: "contact@iosoftware.ai",
   },
@@ -81,14 +81,14 @@ const DEFAULT: PromoConfig = {
   },
   credits: {
     developers: [
-      { name: "Dalufish", role: "核心開發人員", url: "https://www.instagram.com/stories/easonlu0303/" },
-      { name: "147", role: "核心團隊維護者", url: "https://toc.icu" },
+      { name: "Dalufish", role: "核心開發人員", url: "https://github.com/sxmxc/palserver-gui-redux" },
+      { name: "147", role: "核心團隊維護者", url: "https://github.com/sxmxc/palserver-gui-redux" },
       { name: "墨殘", role: "核心團隊維護者", url: "https://www.youtube.com/@Bad_Mo" },
       { name: "LilaS", role: "核心團隊維護者・資安", url: "https://lilas-tw.com/" },
       { name: "咖啡", role: "核心團隊維護者" },
     ],
     ambassadors: [{ name: "捷克", role: "推廣大使", url: "https://www.youtube.com/@PXJ" }],
-    donate: "https://buymeacoffee.com/dalufish",
+    donate: "https://github.com/sxmxc/palserver-gui-redux",
   },
 };
 

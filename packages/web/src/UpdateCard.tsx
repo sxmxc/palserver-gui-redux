@@ -132,7 +132,7 @@ export function UpdateCard({ client }: { client: AgentClient }) {
       {!status.supported && status.reason && (
         <p className="mt-2 inline-flex items-start gap-1.5 rounded-xl bg-card-soft px-3 py-2 text-xs text-ink-muted">
           <FiAlertTriangle className="mt-0.5 size-3.5 shrink-0" />
-          {status.reason}
+          {t(status.reason)}
         </p>
       )}
       {status.lastError && !busy && <p className={`${errorCls} mt-2`}>{t("上次更新失敗:")}{status.lastError}</p>}
