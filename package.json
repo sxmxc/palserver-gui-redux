@@ -1,0 +1,26 @@
+{
+  "name": "palserver-gui",
+  "version": "2.5.0",
+  "private": true,
+  "description": "Docker-based Palworld dedicated server management. Agent daemon + remote Web UI.",
+  "author": "Dalufishe",
+  "license": "PolyForm-Noncommercial-1.0.0",
+  "packageManager": "pnpm@11.10.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build:shared": "pnpm --filter @palserver/shared build",
+    "dev:agent": "pnpm build:shared && pnpm --filter @palserver/agent dev",
+    "dev:web": "pnpm build:shared && pnpm --filter @palserver/web dev",
+    "build": "pnpm -r build",
+    "typecheck": "pnpm build:shared && pnpm -r typecheck",
+    "bundle:agent": "pnpm build:shared && pnpm --filter @palserver/agent build && node scripts/bundle-agent.mjs",
+    "release:exe": "pnpm build:shared && pnpm --filter @palserver/web build && pnpm bundle:agent && node scripts/build-sea.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.1",
+    "postject": "1.0.0-alpha.6",
+    "resedit": "^2.0.3"
+  }
+}

@@ -1,0 +1,10 @@
+packages:
+  - packages/*
+allowBuilds:
+  cpu-features: false
+  esbuild: true
+  protobufjs: false
+  sharp: false
+  ssh2: false
+  # wrangler(部署 packages/stats)的執行環境,postinstall 會抓平台 binary。
+  workerd: true
