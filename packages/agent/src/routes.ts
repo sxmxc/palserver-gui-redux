@@ -1958,7 +1958,7 @@ export function registerRoutes(
   });
 
   app.post("/api/instances/:id/update", async (req, reply) => {
-    const rec = getOr404((req.params as { id: string }).id);
+    let rec = getOr404((req.params as { id: string }).id);
     // fresh = 重灌:刪除遊戲本體(保留 Pal/Saved 的存檔與設定檔)後全新下載。
     const { fresh } = z.object({ fresh: z.boolean().optional() }).parse(req.body ?? {});
 
@@ -1986,6 +1986,9 @@ export function registerRoutes(
           }
         }
       }
+      // The updater can replace files below Pal/Saved. Import any edits before
+      // taking the snapshot so the store remains authoritative after updating.
+      rec = await reconcileWorldIni(rec);
       await snapshotBefore(rec, "server update");
       updateServer(rec, ctxOf(rec), fresh);
       reply.code(202);

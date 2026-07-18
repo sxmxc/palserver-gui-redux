@@ -1706,5 +1706,10 @@
   "NoAsyncLoadingThread(停用非同步載入執行緒)": "NoAsyncLoadingThread (disable asynchronous loading thread)",
   "UseMultithreadForDS(伺服器多執行緒)": "UseMultithreadForDS (server multithreading)",
   "工作執行緒數(NumberOfWorkerThreadsServer)": "Worker thread count (NumberOfWorkerThreadsServer)",
-  "0 = 不指定(交給系統)。需搭配上面的多執行緒旗標才有意義。": "0 = unspecified (let the system decide). This only matters with the multithreading flags above."
+  "0 = 不指定(交給系統)。需搭配上面的多執行緒旗標才有意義。": "0 = unspecified (let the system decide). This only matters with the multithreading flags above.",
+  "此功能為贊助者先行版,請在設定頁輸入贊助者識別碼解鎖。": "This feature is available to sponsors first. Enter your sponsor ID on the Settings page to unlock it.",
+  "批量給予道具目前僅支援 Windows 伺服器": "Bulk giving items is currently supported only on Windows servers.",
+  "需要先安裝 PalDefender 才能發道具": "Install PalDefender before giving items.",
+  "RCON 未啟用 — 請到世界設定開啟 RCONEnabled 並重啟伺服器": "RCON is disabled — enable RCONEnabled in World settings, then restart the server.",
+  "尚未設定管理員密碼 — 請到世界設定填入 AdminPassword 並重啟": "No administrator password is configured — set AdminPassword in World settings, then restart the server."
 }

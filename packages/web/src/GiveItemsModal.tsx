@@ -68,7 +68,7 @@ export function GiveItemsModal({
       const res = await client.giveItems(instanceId, userId.trim(), items);
       setResult(res.output || t("已送出"));
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(t(err instanceof Error ? err.message : String(err)));
     } finally {
       setBusy(false);
     }

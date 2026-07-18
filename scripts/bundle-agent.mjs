@@ -1,8 +1,8 @@
-// 把 agent(含 @palserver/shared 與所有 npm 相依)打包成單一檔案,作為免安裝
-// 執行檔(Node SEA)的基礎。cpu-features 是 ssh2 的可選原生加速模組(.node),
-// 無法打包也非必要,標為 external;ssh2 沒有它會自動退回純 JS。dockerode 走本地
-// socket,實務上不會用到 ssh2 的連線功能,但 docker-modem 會在載入時 require 它,
-// 所以 ssh2 本身要打包進來(純 JS 部分)以免啟動即崩潰。
+// Bundles the agent (including @palserver/shared and all npm dependencies) into one file as the basis
+// for the standalone executable (Node SEA). cpu-features is ssh2's optional native acceleration module (.node),
+// which cannot be bundled and is not required, so it is externalized; ssh2 automatically falls back to pure JavaScript without it. dockerode uses a local
+// socket and does not use ssh2 connections in practice, but docker-modem requires it at load time,
+// so ssh2 itself (the pure JavaScript portion) must be bundled to prevent a startup crash.
 import { build } from "esbuild";
 import { execSync } from "node:child_process";
 import { createRequire } from "node:module";
@@ -12,10 +12,10 @@ import path from "node:path";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 /**
- * 打包進執行檔的版本號 —— 這是自我更新是否「已是最新」的判斷依據,一定要等於這個
- * build 對應的 release tag,否則更新完仍會被判為有新版。
- *  - CI 由 tag 觸發 release:GITHUB_REF_NAME 就是 tag(例如 v2.0.0-alpha.3)。
- *  - 本機/手動 build:退回最近的 git tag,再退回 agent package.json 的版本。
+ * The version baked into the executable. Self-update uses it to determine whether it is current, so it must equal the
+ * release tag for this build; otherwise it will still appear outdated after updating.
+ *  - CI releases are triggered by a tag, so GITHUB_REF_NAME is that tag (for example, v2.0.0-alpha.3).
+ *  - Local/manual builds fall back to the nearest git tag, then the agent package.json version.
  */
 function resolveAgentVersion() {
   const ref = process.env.GITHUB_REF_NAME;
@@ -28,7 +28,7 @@ function resolveAgentVersion() {
       .trim();
     if (/^v?\d/.test(desc)) return desc.replace(/^v/, "");
   } catch {
-    /* 沒有 tag 或不是 git repo，往下退 */
+    /* No tag, or not a git repository: fall through. */
   }
   const pkg = createRequire(import.meta.url)(path.join(root, "packages/agent/package.json"));
   return pkg.version;
@@ -44,7 +44,7 @@ await build({
   format: "cjs",
   outfile: path.join(root, "packages/agent/bundle/agent.cjs"),
   external: ["cpu-features"],
-  // 把版本烙進 bundle:env.ts 讀 process.env.PALSERVER_AGENT_VERSION,這裡換成字面值。
+  // Bake the version into the bundle: env.ts reads process.env.PALSERVER_AGENT_VERSION, which is replaced here with a literal.
   define: { "process.env.PALSERVER_AGENT_VERSION": JSON.stringify(version) },
   logLevel: "info",
 });

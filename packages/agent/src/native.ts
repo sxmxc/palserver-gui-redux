@@ -429,6 +429,32 @@ const worldIniPath = (rec: InstanceRecord, ctx: DriverContext) =>
 /** 「agent 上次寫進 PalWorldSettings.ini 的內容」快照,用來偵測使用者的手動編輯。 */
 const worldAppliedPath = (ctx: DriverContext) => path.join(ctx.instanceDir, "world-applied.json");
 
+interface PreservedWorldIni {
+  file: string;
+  content: string;
+}
+
+/**
+ * DepotDownloader validates the whole server directory. A Palworld release can
+ * therefore replace PalWorldSettings.ini even though it lives under Saved.
+ * Keep the exact file contents so an update cannot reset settings that are not
+ * yet represented in the agent store.
+ */
+function preserveWorldIni(rec: InstanceRecord, ctx: DriverContext): PreservedWorldIni | null {
+  const file = worldIniPath(rec, ctx);
+  try {
+    return { file, content: fs.readFileSync(file, "utf8") };
+  } catch {
+    return null;
+  }
+}
+
+function restoreWorldIni(preserved: PreservedWorldIni | null): void {
+  if (!preserved) return;
+  fs.mkdirSync(path.dirname(preserved.file), { recursive: true });
+  fs.writeFileSync(preserved.file, preserved.content);
+}
+
 /** 也供 route 層在世界設定 PUT 時即時落檔(native),讓檔案跟 store 同步。 */
 export function writeWorldIni(rec: InstanceRecord, ctx: DriverContext): void {
   writeIni(rec, ctx);
@@ -614,6 +640,10 @@ export function updateServer(rec: InstanceRecord, ctx: DriverContext, fresh = fa
     }
   };
   void (async () => {
+    // Preserve the file before DepotDownloader can validate/replace it. This is
+    // deliberately independent from fresh mode: fresh retains Pal/Saved today,
+    // but the same guarantee should hold if its implementation changes later.
+    const preservedWorldIni = preserveWorldIni(rec, ctx);
     try {
       fs.mkdirSync(ctx.instanceDir, { recursive: true });
       appendLog(fresh ? "[palserver] 開始重灌伺服器(刪除本體後重新下載)…" : "[palserver] 開始更新伺服器…");
@@ -624,8 +654,18 @@ export function updateServer(rec: InstanceRecord, ctx: DriverContext, fresh = fa
       await runDepotDownloaderWithRecovery(serverRoot(rec, ctx), appendLog, (pct) =>
         installProgress.set(rec.id, pct),
       );
+      restoreWorldIni(preservedWorldIni);
       appendLog("[palserver] 更新完成");
     } catch (err) {
+      // Also restore after a failed update: DepotDownloader can have already
+      // replaced individual files before reporting an error.
+      try {
+        restoreWorldIni(preservedWorldIni);
+      } catch (restoreErr) {
+        appendLog(
+          `[palserver] Unable to restore PalWorldSettings.ini saved before the update: ${restoreErr instanceof Error ? restoreErr.message : String(restoreErr)}`,
+        );
+      }
       const info = classifyInstallError(err);
       const tail = recent.slice(-10).join("\n").trim();
       installErrors.set(

@@ -1,5 +1,5 @@
-# palserver-gui agent（管理面板後端 + 前端）
-# 在 k8s 叢集內運行，用 service account 存取 game-server StatefulSet
+# palserver-gui agent (management UI backend and frontend)
+# Runs in the Kubernetes cluster and uses its service account to access the game-server StatefulSet.
 ---
 apiVersion: v1
 kind: Namespace
@@ -31,22 +31,22 @@ metadata:
   name: palserver-agent-role
   namespace: palserver
 rules:
-  # StatefulSet 讀取 + scale patch
+  # Read StatefulSets and patch their scale.
   - apiGroups: ["apps"]
     resources: ["statefulsets"]
     verbs: ["get", "list", "watch", "patch", "update"]
-  # StatefulSet scale 子資源
+  # StatefulSet scale subresource.
   - apiGroups: ["apps"]
     resources: ["statefulsets/scale"]
     verbs: ["get", "patch", "update"]
-  # Pod 列表 + 刪除（restart 用）+ 日誌
+  # List and delete Pods (for restarts), and read logs.
   - apiGroups: [""]
     resources: ["pods"]
     verbs: ["get", "list", "watch", "delete"]
   - apiGroups: [""]
     resources: ["pods/log"]
     verbs: ["get"]
-  # Pod exec（存檔/引擎微調等檔案操作；k3s 需要 create + get）
+  # Execute commands in Pods (save files, engine tuning, and other file operations; k3s requires create and get).
   - apiGroups: [""]
     resources: ["pods/exec"]
     verbs: ["create", "get"]
@@ -112,8 +112,8 @@ spec:
               value: "0"
             - name: PALSERVER_AUTO_UPDATE
               value: "0"
-            # 持久化 store（instances.json、token、報告等）到獨立 PVC，
-            # 避免 pod 重啟遺失資料，也避免與遊戲 PVC 綁定生命週期。
+            # Persist the store (instances.json, tokens, reports, and so on) on a separate PVC.
+            # This survives Pod restarts and avoids coupling its lifecycle to the game PVC.
             - name: PALSERVER_DATA_DIR
               value: /agent-data
           volumeMounts:

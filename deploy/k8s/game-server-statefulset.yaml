@@ -1,5 +1,5 @@
-# Palworld 遊戲伺服器（thijsvanloef/palworld-server-docker）
-# 受 palserver-gui agent 的 k8s driver 管理（StatefulSet 擴縮容 + env patch）
+# Palworld game server (thijsvanloef/palworld-server-docker)
+# Managed by the palserver-gui agent's Kubernetes driver (StatefulSet scaling and environment patches)
 ---
 apiVersion: apps/v1
 kind: StatefulSet
@@ -10,7 +10,7 @@ metadata:
     app: palworld-game-server
 spec:
   serviceName: palworld-game-server
-  replicas: 0  # 預設停止；agent start 會 scale 到 1
+  replicas: 0  # Stopped by default; agent start scales this to 1.
   selector:
     matchLabels:
       app: palworld-game-server
@@ -67,7 +67,7 @@ spec:
           volumeMounts:
             - name: palworld-data
               mountPath: /palworld/
-          # Pod Ready 必須代表 Palworld REST API 已可連線。
+          # Pod readiness must mean that the Palworld REST API is reachable.
           startupProbe:
             exec:
               command:
@@ -122,7 +122,7 @@ spec:
       targetPort: 27015
       protocol: UDP
       name: steam
-    # REST API 僅叢集內部（agent 存取用）
+    # REST API is internal to the cluster (for agent access).
     - port: 8212
       targetPort: 8212
       protocol: TCP
