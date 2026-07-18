@@ -175,12 +175,12 @@ export async function getModsStatus(rec: InstanceRecord, ctx: DriverContext): Pr
   });
 
   if (serverPlatform(rec) !== "windows") {
-    return unsupported("模組管理需要 Windows 伺服器(UE4SS/PalDefender 是 Windows DLL,在非 Windows binary 上無法載入)");
+    return unsupported("Mod management requires a Windows server (UE4SS and PalDefender are Windows DLLs and cannot load on a non-Windows binary).");
   }
   // Linux/macOS 原生模式:伺服器跑得起來,但 UE4SS/PalDefender 官方僅支援 Windows
   // 專用伺服器 —— 不擋在「未安裝」的誤導文案,明講平台限制。
   if (rec.backend === "native" && process.platform !== "win32") {
-    return unsupported("UE4SS/PalDefender 僅支援 Windows 伺服器,這台主機無法使用 DLL 模組(純內容 .pak 模組不受影響)");
+    return unsupported("UE4SS and PalDefender only support Windows servers; this host cannot use DLL mods (.pak content mods are unaffected).");
   }
 
   // docker/k8s: 容器/Pod 內 exec 偵測（host fs 看不到容器內的 Win64 目錄）。

@@ -102,17 +102,20 @@ async function loadDict(l: Lang): Promise<void> {
     dicts[l] = cached;
     notify();
   }
-  // bundled 墊底(沒有快取才需要,有快取時快取一定不比 bundled 舊)
-  if (!cached) {
-    try {
-      const res = await fetch(`${LOCAL_BASE}${l}.json`, { signal: AbortSignal.timeout(4000) });
-      if (res.ok) {
-        dicts[l] = (await res.json()) as Dict;
-        notify();
-      }
-    } catch {
-      /* 沒有 bundled 檔就先用原文 */
+  // Always merge the bundled dictionary. A stale cache or remote copy must never
+  // discard translations added by the version currently running.
+  try {
+    const res = await fetch(`${LOCAL_BASE}${l}.json`, {
+      cache: "no-cache",
+      signal: AbortSignal.timeout(4000),
+    });
+    if (res.ok) {
+      const bundled = (await res.json()) as Dict;
+      dicts[l] = { ...(dicts[l] ?? {}), ...bundled };
+      notify();
     }
+  } catch {
+    /* Use the cached dictionary or source text when the bundled file is unavailable. */
   }
   // 遠端(GitHub)為準,抓到有變才更新
   try {
@@ -122,12 +125,13 @@ async function loadDict(l: Lang): Promise<void> {
     });
     if (res.ok) {
       const remote = (await res.json()) as Dict;
-      if (JSON.stringify(remote) !== JSON.stringify(dicts[l] ?? null)) {
-        dicts[l] = remote;
+      const merged = { ...(dicts[l] ?? {}), ...remote };
+      if (JSON.stringify(merged) !== JSON.stringify(dicts[l] ?? null)) {
+        dicts[l] = merged;
         try {
-          localStorage.setItem(DICT_CACHE_PREFIX + l, JSON.stringify(remote));
+          localStorage.setItem(DICT_CACHE_PREFIX + l, JSON.stringify(merged));
         } catch {
-          /* 存不進去就下次再抓 */
+          /* Ignore local-storage write failures. */
         }
         notify();
       }

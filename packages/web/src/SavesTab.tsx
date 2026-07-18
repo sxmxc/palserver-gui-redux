@@ -727,7 +727,7 @@ function ScheduleCard({
 
       <p className="text-[13px] text-ink-muted">
         {schedule.lastRunAt
-          ? `${t("上次執行")} ${fmtWhen(schedule.lastRunAt)} — ${schedule.lastResult ?? ""}`
+          ? `${t("上次執行")} ${fmtWhen(schedule.lastRunAt)} — ${schedule.lastResult ? t(schedule.lastResult) : ""}`
           : t("尚未執行過。備份只在伺服器運作中進行。")}
       </p>
 

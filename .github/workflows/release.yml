@@ -1,12 +1,11 @@
 name: release
 
-# 推一個 v* tag(或手動觸發)就會在三種 OS 上各自產生免安裝執行檔,
-# 打包成 zip 並附到 GitHub Release。Windows/Linux exe 只能在對應的 runner
-# 上產生,這正是需要 CI 的原因(開發者的 Mac 產不出 Windows exe)。
+# Pushing a v* tag builds portable executables on Windows, Linux, and macOS,
+# packages them, and publishes a GitHub Release. Platform-specific runners are
+# required because each executable must be built on its target operating system.
 on:
   push:
     tags: ["v*"]
-  workflow_dispatch:
 
 permissions:
   contents: write
@@ -33,41 +32,41 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
 
-      # 合一版(exe + 前端):esbuild bundle → Node SEA → release/
+      # Build the portable distribution: esbuild bundle → Node SEA → release/.
       - run: pnpm release:exe
 
-      # LICENSE.md 一定要跟著散布:PolyForm Noncommercial 的 Notices 條款要求
-      # 拿到副本的人也拿得到條款(build-sea.mjs 已把它放進 release/)。
-      - name: 打包 zip(合一版,Unix)
+      # Include LICENSE.md in every distribution as required by the PolyForm
+      # Noncommercial notices; build-sea.mjs copies it into release/.
+      - name: Package portable ZIP (Unix)
         if: runner.os != 'Windows'
         shell: bash
         run: cd release && zip -r ../palserver-agent-${{ matrix.artifact }}.zip palserver-agent web LICENSE.md
 
-      - name: 打包 zip(合一版,Windows)
+      - name: Package portable ZIP (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
         run: Compress-Archive -Path release/palserver-agent.exe, release/web, release/LICENSE.md -DestinationPath palserver-agent-${{ matrix.artifact }}.zip
 
-      # zip 是給人手動下載的;自我更新讀這包 tar.gz(tar 在 Win10+/mac/Linux 都內建,
-      # 且能保留執行權限與 macOS 的 ad-hoc 簽章)。
-      - name: 打包 tar.gz(自我更新用)
+      # ZIP files are for manual downloads. The in-app updater uses the tar.gz
+      # archives because they preserve executable permissions and macOS ad-hoc signatures.
+      - name: Package updater archive (tar.gz)
         shell: bash
         run: tar -czf palserver-agent-${{ matrix.artifact }}.tar.gz -C release .
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: palserver-agent-${{ matrix.artifact }}
           path: |
             palserver-agent-${{ matrix.artifact }}.zip
             palserver-agent-${{ matrix.artifact }}.tar.gz
 
-      # 純 web 版(可獨立部署到公開站)—— 只需產一次
-      - name: 打包純 web 版
+      # The standalone web build can be deployed separately and only needs one build.
+      - name: Package standalone web build
         if: matrix.artifact == 'linux'
         shell: bash
         run: cp LICENSE.md packages/web/dist/ && cd packages/web/dist && zip -r ../../../palserver-web.zip .
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         if: matrix.artifact == 'linux'
         with:
           name: palserver-web
@@ -78,15 +77,20 @@ jobs:
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
     steps:
-      # 需要 checkout 才能讀到 RELEASE_NOTES.md(發布內文來源)。
+      # Check out the exact tagged revision so the release body matches the build.
       - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
+      - name: Verify release notes
+        run: test -s RELEASE_NOTES.md
       - uses: actions/download-artifact@v5
         with:
           path: artifacts
 
-      # 攤平成一層,並附上校驗檔 —— agent 自我更新前一定會比對 SHA256,
-      # 沒有這個檔就拒絕更新(見 packages/agent/src/self-update.ts)。
-      - name: 收集產物並產生 SHA256SUMS.txt
+      # Flatten build artifacts and generate checksums. The in-app updater refuses
+      # releases without SHA256SUMS.txt (see packages/agent/src/self-update.ts).
+      - name: Collect artifacts and generate SHA256SUMS.txt
         run: |
           mkdir -p dist
           find artifacts -type f \( -name '*.zip' -o -name '*.tar.gz' \) -exec mv {} dist/ \;
@@ -95,6 +99,10 @@ jobs:
       - uses: softprops/action-gh-release@v2
         with:
           files: dist/*
-          # 發布內文(更新日誌 + 貢獻者感謝 + 下載教學)維護在 repo 根目錄的
-          # RELEASE_NOTES.md,每次發版前先更新它;這裡原樣採用,不自動附 commit 清單。
-          body_path: RELEASE_NOTES.md
+          # Publish the release notes committed with this tag; do not generate a
+          # separate commit list.
+          body_path: ${{ github.workspace }}/RELEASE_NOTES.md
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          generate_release_notes: false
+          fail_on_unmatched_files: true
