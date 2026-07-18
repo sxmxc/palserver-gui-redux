@@ -104,7 +104,7 @@ export async function setPakModEnabled(
   name: string,
   enabled: boolean,
 ): Promise<void> {
-  if (!/^[\w./-]+$/.test(name)) throw Object.assign(new Error("pak 檔名不合法"), { statusCode: 400 });
+  if (!/^[\w./-]+$/.test(name)) throw Object.assign(new Error("Invalid pak filename"), { statusCode: 400 });
 
   const baseName = name.replace(/\.disabled$/, "");
   const fromName = enabled ? `${baseName}.disabled` : baseName;
@@ -125,7 +125,7 @@ export async function setPakModEnabled(
   const from = path.join(dir, fromName);
   const to = path.join(dir, toName);
   if (!fs.existsSync(from) && !fs.existsSync(to)) {
-    throw Object.assign(new Error(`找不到 pak mod: ${name}`), { statusCode: 404 });
+    throw Object.assign(new Error(`Pak mod not found: ${name}`), { statusCode: 404 });
   }
   if (fs.existsSync(from)) fs.renameSync(from, to);
 }
@@ -136,7 +136,7 @@ export async function removePakMod(
   ctx: DriverContext,
   name: string,
 ): Promise<void> {
-  if (!/^[\w./-]+$/.test(name)) throw Object.assign(new Error("pak 檔名不合法"), { statusCode: 400 });
+  if (!/^[\w./-]+$/.test(name)) throw Object.assign(new Error("Invalid pak filename"), { statusCode: 400 });
   const baseName = name.replace(/\.disabled$/, "");
 
   // k8s + docker: exec rm

@@ -67,7 +67,7 @@ export default function NavMenu({ d, lang }: { d: Dictionary['nav']; lang: Local
         <LangSwitch current={lang} />
         <a
           className="btn btn-g"
-          href="https://github.com/io-software-ai/palserver-gui"
+          href="https://github.com/sxmxc/palserver-gui-redux"
           onClick={close}
         >
           <GitHubIcon />

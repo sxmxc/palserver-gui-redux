@@ -64,10 +64,10 @@ export async function giveCustomPal(
   }
 
   try {
-    if (!input.userId) throw Object.assign(new Error("缺少目標玩家"), { statusCode: 400 });
+    if (!input.userId) throw Object.assign(new Error("Target player is required"), { statusCode: 400 });
     if (input.mode === "egg") {
       // REST /give/paleggs/{UserId},PalTemplate 帶完整範本檔名(含 .json)。
-      if (!input.eggId) throw Object.assign(new Error("缺少蛋 ID"), { statusCode: 400 });
+      if (!input.eggId) throw Object.assign(new Error("Egg ID is required"), { statusCode: 400 });
       const n = await givePalEgg(rec, ctx, input.userId, input.eggId, `${name}.json`, input.level);
       return `已給予帕魯蛋 ×${n}`;
     }

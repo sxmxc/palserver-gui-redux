@@ -438,7 +438,7 @@ export async function getSavesStatus(
   if (!fs.existsSync(saveGamesDir(root))) {
     return {
       supported: false,
-      reason: "尚未產生世界存檔 — 先啟動一次伺服器",
+      reason: "No world save exists yet — start the server once first",
       worlds: [],
       backups: listBackups(ctx),
     };

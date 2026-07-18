@@ -346,7 +346,7 @@ function localAddresses(): { ip: string; vpn: string | null }[] {
 }
 
 /**
- * 精簡的啟動說明:只留玩家真正需要的三行 —— 本機管理網址、邀朋友的設定連結、配對碼。
+ * Concise startup banner: show only the local URL, share link, and pairing code.
  * 完整的 token / 各網卡位址 / 授權條款都改到 GUI 內的設定頁與隨附檔案,不再洗版。
  */
 function printStartupBanner(
@@ -359,17 +359,17 @@ function printStartupBanner(
   const remote = localAddresses()[0]; // 優先 VPN(Tailscale/Radmin…),否則第一個區網位址
   const L = (s = "") => process.stdout.write(s + "\n");
   L();
-  L("  palserver GUI 已啟動。請保持這個視窗開著(關掉就會停止伺服器管理)。");
+  L("  palserver GUI is running. Keep this window open (closing it stops server management).");
   L();
   if (hasWeb) {
-    L(`  在這台電腦管理: ${proto}://localhost:${port}${willOpen ? "   (正在自動開啟瀏覽器…)" : ""}`);
+    L(`  Manage on this computer: ${proto}://localhost:${port}${willOpen ? "   (opening browser…)" : ""}`);
   } else {
     L(`  API 位址(此版本未內含網頁介面): ${proto}://localhost:${port}`);
   }
   if (remote) {
-    L(`  邀朋友 / 其他裝置: ${proto}://${remote.ip}:${port}/?setup=${code}${remote.vpn ? `   (${remote.vpn})` : ""}`);
+    L(`  Invite friends / other devices: ${proto}://${remote.ip}:${port}/?setup=${code}${remote.vpn ? `   (${remote.vpn})` : ""}`);
   }
-  L(`  配對碼: ${code}   (在別的裝置連線時要用)`);
+  L(`  Pairing code: ${code}   (required when connecting from another device)`);
   if (proto === "https") L("  自簽憑證會跳安全警告,選「繼續前往」即可。");
   L();
 }

@@ -121,7 +121,7 @@ export async function createContainer(
   if (!imageExists) {
     const err = new Error(
       rec.dockerImage?.trim()
-        ? `找不到自訂鏡像 "${image}" — 請先 docker pull 該鏡像,或確認名稱/標籤正確`
+        ? `Custom image "${image}" was not found — run docker pull first, or check the image name and tag`
         : `server image "${image}" not found — build it first: ` +
             `docker build -t ${image} images/${rec.flavor}`,
     ) as Error & { statusCode: number };
@@ -240,7 +240,7 @@ export async function execInContainer(
   command: string[],
 ): Promise<string> {
   const container = await findContainer(rec);
-  if (!container) throw Object.assign(new Error("找不到容器"), { statusCode: 409 });
+  if (!container) throw Object.assign(new Error("Container not found"), { statusCode: 409 });
   const exec = await container.exec({
     Cmd: command,
     AttachStdout: true,
@@ -270,7 +270,7 @@ export async function execInContainerChecked(
   user?: string,
 ): Promise<string> {
   const container = await findContainer(rec);
-  if (!container) throw Object.assign(new Error("找不到容器"), { statusCode: 409 });
+  if (!container) throw Object.assign(new Error("Container not found"), { statusCode: 409 });
   const exec = await container.exec({
     Cmd: command,
     ...(user ? { User: user } : {}),
@@ -295,7 +295,7 @@ export async function execInContainerChecked(
   const stderrText = Buffer.concat(errChunks).toString("utf8").trim();
   if (info.ExitCode !== 0) {
     throw new Error(
-      `容器內命令失敗(exit ${info.ExitCode}):${stderrText || command.join(" ")}`,
+      `Command failed in container (exit ${info.ExitCode}): ${stderrText || command.join(" ")}`,
     );
   }
   return Buffer.concat(outChunks).toString("utf8");
@@ -308,7 +308,7 @@ export async function putArchiveToContainer(
   containerPath: string,
 ): Promise<void> {
   const container = await findContainer(rec);
-  if (!container) throw Object.assign(new Error("找不到容器"), { statusCode: 409 });
+  if (!container) throw Object.assign(new Error("Container not found"), { statusCode: 409 });
   await container.putArchive(tarStream, { path: containerPath });
 }
 
@@ -350,6 +350,6 @@ export const dockerDriver: ServerDriver = {
   remove: (rec) => removeInstanceContainer(rec),
   stats: (rec) => getStats(rec),
   // Container stdout carries everything; there are no separate sources.
-  logSources: () => [{ id: "agent", label: "容器輸出", available: true }],
+  logSources: () => [{ id: "agent", label: "Container output", available: true }],
   streamLogs: (rec, _ctx, onLine, onEnd) => streamLogs(rec, onLine, onEnd),
 };

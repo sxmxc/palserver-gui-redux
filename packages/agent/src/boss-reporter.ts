@@ -74,7 +74,7 @@ export async function getBossReporterStatus(
   if (serverPlatform(rec) !== "windows") {
     return {
       supported: false,
-      reason: "頭目回報模組僅支援 Windows 伺服器",
+      reason: "The boss reporter mod only supports Windows servers",
       ue4ss: false,
       modInstalled: false,
       version: null,
@@ -84,7 +84,7 @@ export async function getBossReporterStatus(
   if (!(await runtimeExists(rec, ctx, WIN64_REL, "d"))) {
     return {
       supported: false,
-      reason: "伺服器尚未安裝完成 — 先啟動一次讓 agent 下載伺服器",
+      reason: "Server installation is incomplete — start it once so the agent can download the server",
       ue4ss: false,
       modInstalled: false,
       version: null,

@@ -46,11 +46,11 @@ function worldHealthText(text: string, displayPath: string): FileHealth {
   const structural = checkStructure(text);
   if (structural) return { exists: true, corrupted: true, reason: structural, path: displayPath };
   if (!/\[\/Script\/Pal\.PalGameWorldSettings\]/.test(text)) {
-    return { exists: true, corrupted: true, reason: "缺少 PalGameWorldSettings 區段", path: displayPath };
+    return { exists: true, corrupted: true, reason: "PalGameWorldSettings section is missing", path: displayPath };
   }
   const opt = /OptionSettings\s*=\s*\((.*)\)\s*$/m.exec(text);
   if (!opt) {
-    return { exists: true, corrupted: true, reason: "OptionSettings 缺失或括號不完整", path: displayPath };
+    return { exists: true, corrupted: true, reason: "OptionSettings is missing or has unbalanced brackets", path: displayPath };
   }
   return { exists: true, corrupted: false, path: displayPath };
 }

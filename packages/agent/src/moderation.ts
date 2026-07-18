@@ -68,13 +68,13 @@ function parseBanlist(raw: unknown): BanEntry[] {
 
 export async function getModerationLists(rec: InstanceRecord, ctx: DriverContext): Promise<ModerationLists> {
   if (serverPlatform(rec) !== "windows") {
-    return { supported: false, reason: "名單管理僅支援 Windows 伺服器", whitelistEnabled: false, whitelist: [], bans: [] };
+    return { supported: false, reason: "List management is only supported on Windows servers", whitelistEnabled: false, whitelist: [], bans: [] };
   }
   const dir = await getPdDir(rec, ctx);
   if (!dir) {
     return {
       supported: false,
-      reason: "尚未安裝 PalDefender,或伺服器尚未啟動過以生成設定檔",
+      reason: "PalDefender is not installed, or the server has not been started to generate its config",
       whitelistEnabled: false,
       whitelist: [],
       bans: [],

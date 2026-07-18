@@ -239,7 +239,7 @@ export async function getUpdateStatus(force = false): Promise<AgentUpdateStatus>
     cached.channel === prefs.channel &&
     Date.now() - Date.parse(cached.checkedAt) < CHECK_TTL_MS;
   const info = !force && fresh ? cached : await fetchLatestRelease(prefs.channel);
-  if (!info) return { ...base, reason: base.reason ?? "無法連上 GitHub 檢查更新" };
+  if (!info) return { ...base, reason: base.reason ?? "Unable to reach GitHub to check for updates" };
 
   const available = info.latestVersion !== null && isNewer(info.latestVersion, AGENT_VERSION);
   return {
@@ -266,7 +266,7 @@ async function download(url: string, dest: string, onProgress: (pct: number) => 
     headers: { "User-Agent": `palserver-agent/${AGENT_VERSION}` },
     redirect: "follow",
   });
-  if (!res.ok || !res.body) throw new Error(`下載失敗:HTTP ${res.status}`);
+  if (!res.ok || !res.body) throw new Error(`Download failed: HTTP ${res.status}`);
   const total = Number(res.headers.get("content-length") ?? 0);
   let seen = 0;
 
@@ -320,15 +320,15 @@ export function applyUpdate(opts: UpdateOps): Promise<void> {
 
 async function run({ canApply, onRestart, log }: UpdateOps): Promise<void> {
   const layout = installLayout();
-  if (!layout) throw new Error("自我更新僅支援免安裝執行檔版本");
+  if (!layout) throw new Error("Self-update is only supported for standalone executable builds");
   const blocked = canApply();
   if (blocked) throw new Error(blocked);
 
   const status = await getUpdateStatus(true);
-  if (!status.updateAvailable) throw new Error("已經是最新版本");
+  if (!status.updateAvailable) throw new Error("Already running the latest version");
   const cached = readCache();
-  if (!cached?.assetUrl || !cached.assetName) throw new Error("這個版本沒有適用於本平台的更新檔");
-  if (!cached.checksumsUrl) throw new Error(`release 未附 ${CHECKSUMS_ASSET},為安全起見拒絕更新`);
+  if (!cached?.assetUrl || !cached.assetName) throw new Error("This release has no update asset for the current platform");
+  if (!cached.checksumsUrl) throw new Error(`Release does not include ${CHECKSUMS_ASSET}; update refused for safety`);
 
   const work = fs.mkdtempSync(path.join(os.tmpdir(), "palserver-update-"));
   lastError = null;
@@ -348,11 +348,11 @@ async function run({ canApply, onRestart, log }: UpdateOps): Promise<void> {
       redirect: "follow",
       signal: AbortSignal.timeout(10_000),
     });
-    if (!sumsRes.ok) throw new Error(`無法下載 ${CHECKSUMS_ASSET}:HTTP ${sumsRes.status}`);
+    if (!sumsRes.ok) throw new Error(`Unable to download ${CHECKSUMS_ASSET}: HTTP ${sumsRes.status}`);
     const want = expectedHash(await sumsRes.text(), cached.assetName);
-    if (!want) throw new Error(`${CHECKSUMS_ASSET} 裡找不到 ${cached.assetName} 的雜湊`);
+    if (!want) throw new Error(`No checksum for ${cached.assetName} found in ${CHECKSUMS_ASSET}`);
     const got = await sha256(pkg);
-    if (got !== want) throw new Error(`檔案雜湊不符(可能損毀或被竄改):${got.slice(0, 12)}…`);
+    if (got !== want) throw new Error(`File checksum mismatch (it may be corrupted or tampered with): ${got.slice(0, 12)}…`);
     log("SHA256 驗證通過");
 
     phase = "extracting";
@@ -364,7 +364,7 @@ async function run({ canApply, onRestart, log }: UpdateOps): Promise<void> {
     const newExe = path.join(unpacked, exeName);
     const newWeb = path.join(unpacked, "web");
     const newLicense = path.join(unpacked, "LICENSE.md");
-    if (!fs.existsSync(newExe)) throw new Error(`更新檔裡找不到 ${exeName}`);
+    if (!fs.existsSync(newExe)) throw new Error(`Updated archive does not contain ${exeName}`);
 
     phase = "swapping";
     // Windows 不能覆蓋執行中的 exe,但可以改名它 —— 改名後原路徑就空出來了。

@@ -6,7 +6,7 @@ import DownloadLink from '@/components/DownloadLink';
 import MapLangSwitch from './MapLangSwitch';
 import { brandHref, type MapDict, type MapLang } from './i18n';
 
-const GITHUB_URL = 'https://github.com/io-software-ai/palserver-gui';
+const GITHUB_URL = 'https://github.com/sxmxc/palserver-gui-redux';
 
 /**
  * /map 公開地圖 viewer 的品牌頂欄:與官網首頁 components/Nav.tsx 視覺完全一致 ——

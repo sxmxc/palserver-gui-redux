@@ -132,7 +132,7 @@ export const k8sDriver: ServerDriver = {
         }
       }
       if (!settingsSynced) {
-        throw new Error("Wine 設定同步失敗：無法寫入 PalWorldSettings.ini");
+        throw new Error("Wine settings sync failed: unable to write PalWorldSettings.ini");
       }
       // Keep the same manual-edit reconciliation contract as native/docker.
       // The file lives in the Pod, while the managed snapshot belongs to the
@@ -342,7 +342,7 @@ export const k8sDriver: ServerDriver = {
 
   logSources(_rec, _ctx): LogSource[] {
     // Pod stdout carries everything (game + container); there are no separate files.
-    return [{ id: "agent" as const, label: "Pod 日誌", available: true }];
+    return [{ id: "agent" as const, label: "Pod logs", available: true }];
   },
 };
 
@@ -581,7 +581,7 @@ async function ensureWineLaunchArgs(rec: InstanceRecord): Promise<void> {
   const containers = sts.spec?.template?.spec?.containers ?? [];
   const containerIndex = Math.max(0, containers.findIndex((item) => item.name === "palworld-server"));
   const container = containers[containerIndex];
-  if (!container) throw new Error("找不到 game-server 容器定義");
+  if (!container) throw new Error("game-server container definition not found");
 
   const desired = [
     ...buildLaunchArgs(rec.launchOptions),

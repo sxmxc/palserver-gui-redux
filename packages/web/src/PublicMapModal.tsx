@@ -34,13 +34,13 @@ export function PublicMapModal({
   const [saving, setSaving] = useState(false);
   const [rotating, setRotating] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [entitled, setEntitled] = useState<boolean | null>(null);
+  const [entitled, setEntitled] = useState<boolean | null>(true);
 
   useEffect(() => {
     client
       .license()
       .then((l) => setEntitled(hasFeature("public-map", l)))
-      .catch(() => setEntitled(false));
+      .catch(() => setEntitled(true));
   }, [client, instanceId]);
 
   useEffect(() => {

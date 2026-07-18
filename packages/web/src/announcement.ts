@@ -32,7 +32,7 @@ export function isActive(a: Announcement): boolean {
 }
 
 const REMOTE_URL =
-  "https://raw.githubusercontent.com/io-software-ai/palserver-gui/main/announcement.md";
+  "https://raw.githubusercontent.com/sxmxc/palserver-gui-redux/main/announcement.md";
 const LOCAL_URL = "/announcement.md";
 const CACHE_KEY = "palserver.announcements";
 const SEEN_KEY = "palserver.announcementsSeen";

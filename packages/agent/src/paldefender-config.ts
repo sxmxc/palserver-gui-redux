@@ -48,23 +48,23 @@ async function writeConfigJson(rec: InstanceRecord, file: string, content: strin
 
 export async function getPalDefenderConfig(rec: InstanceRecord, ctx: DriverContext): Promise<PalDefenderConfigStatus> {
   if (serverPlatform(rec) !== "windows") {
-    return { supported: false, reason: "PalDefender 設定僅支援 Windows 伺服器", exists: false, values: {}, motd: [] };
+    return { supported: false, reason: "PalDefender settings are only supported on Windows servers", exists: false, values: {}, motd: [] };
   }
   const dir = await getPdDir(rec, ctx);
   if (!dir) {
-    return { supported: false, reason: "尚未安裝 PalDefender,或伺服器尚未啟動過以生成設定檔", exists: false, values: {}, motd: [] };
+    return { supported: false, reason: "PalDefender is not installed, or the server has not been started to generate its config", exists: false, values: {}, motd: [] };
   }
   const file = `${dir}/Config.json`;
   const raw_str = await readConfigJson(rec, file);
   if (!raw_str) {
-    return { supported: true, exists: false, reason: "Config.json 尚未生成 — 啟動一次伺服器即會產生", values: {}, motd: [] };
+    return { supported: true, exists: false, reason: "Config.json has not been generated — start the server once to create it", values: {}, motd: [] };
   }
 
   let raw: Record<string, unknown>;
   try {
     raw = JSON.parse(raw_str);
   } catch {
-    return { supported: true, exists: true, reason: "Config.json 無法解析(格式損壞)", values: {}, motd: [] };
+    return { supported: true, exists: true, reason: "Config.json could not be parsed (file is corrupt)", values: {}, motd: [] };
   }
 
   const values: PalDefenderConfig = {};
@@ -83,7 +83,7 @@ export async function writePalDefenderConfig(
   patch: PalDefenderConfigPatch,
 ): Promise<PalDefenderConfigStatus> {
   const dir = await getPdDir(rec, ctx);
-  if (!dir) throw Object.assign(new Error("找不到 PalDefender 目錄"), { statusCode: 409 });
+  if (!dir) throw Object.assign(new Error("PalDefender directory not found"), { statusCode: 409 });
   const file = `${dir}/Config.json`;
 
   let raw: Record<string, unknown> = {};
@@ -92,7 +92,7 @@ export async function writePalDefenderConfig(
     try {
       raw = JSON.parse(existing);
     } catch {
-      throw Object.assign(new Error("Config.json 格式損壞,無法安全寫入"), { statusCode: 409 });
+      throw Object.assign(new Error("Config.json is corrupt; refusing to write safely"), { statusCode: 409 });
     }
   }
   for (const [key, value] of Object.entries(patch)) {

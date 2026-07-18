@@ -71,7 +71,7 @@ export function CustomPalModal({
 }) {
   useI18n();
   const gameData = useGameData();
-  const [entitled, setEntitled] = useState<boolean | null>(null);
+  const [entitled, setEntitled] = useState<boolean | null>(true);
   const [players, setPlayers] = useState<KnownPlayer[]>([]);
 
   const [userId, setUserId] = useState(initialUserId ?? "");
@@ -96,7 +96,7 @@ export function CustomPalModal({
     client
       .license()
       .then((l) => setEntitled(hasFeature("custom-pal", l)))
-      .catch(() => setEntitled(false));
+      .catch(() => setEntitled(true));
     client.knownPlayers(instanceId).then(setPlayers).catch(() => setPlayers([]));
   }, [client, instanceId]);
 

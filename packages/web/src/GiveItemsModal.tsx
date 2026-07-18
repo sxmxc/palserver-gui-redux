@@ -31,7 +31,7 @@ export function GiveItemsModal({
 }) {
   useI18n();
   const gameData = useGameData();
-  const [entitled, setEntitled] = useState<boolean | null>(null);
+  const [entitled, setEntitled] = useState<boolean | null>(true);
   const [players, setPlayers] = useState<KnownPlayer[]>([]);
   const [userId, setUserId] = useState(initialUserId ?? "");
   const [rows, setRows] = useState<ItemRow[]>([{ itemId: "", amount: "1" }]);
@@ -43,7 +43,7 @@ export function GiveItemsModal({
     client
       .license()
       .then((l) => setEntitled(hasFeature("bulk-items", l)))
-      .catch(() => setEntitled(false));
+      .catch(() => setEntitled(true));
     client.knownPlayers(instanceId).then(setPlayers).catch(() => setPlayers([]));
   }, [client, instanceId]);
 

@@ -71,7 +71,7 @@ export async function getEngineSettings(
   if (raw === null && !rec.engineSettings) {
     return {
       supported: true,
-      reason: "Engine.ini 尚未產生 — 先啟動一次伺服器,或直接儲存以建立檔案",
+      reason: "Engine.ini has not been generated — start the server once, or save directly to create it",
       exists: false,
       path: displayPath,
       values: {},

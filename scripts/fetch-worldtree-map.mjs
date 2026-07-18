@@ -24,7 +24,7 @@ const ZOOM = 3; // 8×8 tiles × 512px = 4096²,與主世界底圖同解析度
 const N = 2 ** ZOOM;
 const TILE = 512;
 const OUT = path.join(ROOT, "packages/web/public/worldtree-map.webp");
-const UA = "palserver-gui-data-sync (maintainer-approved; github.com/io-software-ai/palserver-gui)";
+const UA = "palserver-gui-data-sync (maintainer-approved; github.com/sxmxc/palserver-gui-redux)";
 
 async function fetchTile(x, y) {
   const url = `https://cdn.paldb.cc/image/treemap8/z${ZOOM}x${x}y${y}.webp`;

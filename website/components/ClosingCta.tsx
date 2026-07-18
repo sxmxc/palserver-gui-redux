@@ -14,7 +14,7 @@ export default function ClosingCta({ d }: { d: Dictionary['closing'] }) {
           </p>
           <div className="cta" style={{ marginTop: 0 }}>
             <DownloadLink className="btn btn-p">{d.ctaDownload}</DownloadLink>
-            <a className="btn btn-g" href="https://github.com/io-software-ai/palserver-gui">
+            <a className="btn btn-g" href="https://github.com/sxmxc/palserver-gui-redux">
               <GitHubIcon />
               GitHub
             </a>

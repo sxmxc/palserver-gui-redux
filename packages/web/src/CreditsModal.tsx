@@ -103,7 +103,7 @@ export function CreditsModal({ onClose }: { onClose: () => void }) {
           </p>
           <a
             className="mt-1.5 inline-flex items-center gap-1.5 text-[13px] font-bold text-ink-muted underline-offset-2 transition hover:text-pal hover:underline"
-            href="https://github.com/io-software-ai/palserver-gui/blob/main/LICENSE.md"
+            href="https://github.com/sxmxc/palserver-gui-redux/blob/main/LICENSE.md"
             target="_blank"
             rel="noreferrer"
           >

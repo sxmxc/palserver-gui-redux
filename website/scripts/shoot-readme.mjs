@@ -1,5 +1,6 @@
 import { chromium } from "playwright";
-const OUT = "/private/tmp/claude-501/-Users-eason-Studio-projects-palserver-gui/07316a82-905d-4095-85e8-f7f04e2ab0e9/scratchpad/shots";
+import path from "node:path";
+const OUT = process.env.OUT_DIR || path.resolve(process.cwd(), "tmp/readme-shots");
 const ID = process.env.INST_ID;
 const AG = "http://127.0.0.1:8299";
 

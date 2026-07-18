@@ -13,8 +13,8 @@ type Release = {
   draft: boolean;
 };
 
-const API = 'https://api.github.com/repos/io-software-ai/palserver-gui/releases?per_page=20';
-const RELEASES_URL = 'https://github.com/io-software-ai/palserver-gui/releases';
+const API = 'https://api.github.com/repos/sxmxc/palserver-gui-redux/releases?per_page=20';
+const RELEASES_URL = 'https://github.com/sxmxc/palserver-gui-redux/releases';
 /** release notes 的四語 <details> 區塊以國旗標記語言。 */
 const FLAG: Record<Locale, string> = { zh: '🇹🇼', 'zh-CN': '🇨🇳', en: '🇬🇧', ja: '🇯🇵' };
 const DATE_LOCALE: Record<Locale, string> = { zh: 'zh-TW', 'zh-CN': 'zh-CN', en: 'en', ja: 'ja' };

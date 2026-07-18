@@ -231,7 +231,7 @@ async function ensureDepotDownloader(): Promise<string> {
   const buf = Buffer.from(await res.arrayBuffer());
   const expected = Number(res.headers.get("content-length") ?? 0);
   if (expected > 0 && buf.byteLength !== expected) {
-    throw new Error(`DepotDownloader 下載不完整(${buf.byteLength}/${expected} bytes),請再試一次`);
+    throw new Error(`DepotDownloader download is incomplete (${buf.byteLength}/${expected} bytes); try again`);
   }
   fs.writeFileSync(zipPath, buf);
   // Plain `tar` can't extract zip on most Linux distros (GNU tar has no zip
@@ -242,7 +242,7 @@ async function ensureDepotDownloader(): Promise<string> {
   const st = fs.statSync(tmpBin, { throwIfNoEntry: false });
   // self-contained .NET 單檔至少數十 MB;過小代表解壓不完整
   if (!st || st.size < 5_000_000) {
-    throw new Error("DepotDownloader 解壓後不完整,請再試一次");
+    throw new Error("DepotDownloader extraction is incomplete; try again");
   }
   if (!IS_WIN) fs.chmodSync(tmpBin, 0o755);
   fs.rmSync(toolsDir, { recursive: true, force: true });
@@ -281,7 +281,7 @@ const DISK_FULL_RE =
 
 /** 標成磁碟不足的錯誤;前端據 code 顯示友善提示。 */
 function diskFullError(): Error & { code: "disk-full" } {
-  return Object.assign(new Error("磁碟空間不足"), { code: "disk-full" as const });
+  return Object.assign(new Error("Insufficient disk space"), { code: "disk-full" as const });
 }
 
 /** DepotDownloader 撞到「檔案被其他程序鎖住」的字樣(.NET IOException)。 */
@@ -536,7 +536,7 @@ export const lastInstallError = (id: string): InstallError | null => installErro
 function classifyInstallError(err: unknown): InstallError {
   const code = (err as { code?: string })?.code;
   if (code === "disk-full" || code === "ENOSPC") {
-    return { code: "disk-full", message: "磁碟空間不足" };
+    return { code: "disk-full", message: "Insufficient disk space" };
   }
   return { code: "error", message: err instanceof Error ? err.message : String(err) };
 }
@@ -632,7 +632,7 @@ export function updateServer(rec: InstanceRecord, ctx: DriverContext, fresh = fa
         rec.id,
         info.code === "disk-full" || !tail
           ? info
-          : { ...info, message: `${info.message}\n─ 下載器輸出(尾段)─\n${tail}` },
+          : { ...info, message: `${info.message}\n─ Downloader output (tail) ─\n${tail}` },
       );
       appendLog(
         info.code === "disk-full"
@@ -872,7 +872,7 @@ export const nativeDriver: ServerDriver = {
           rec.id,
           info.code === "disk-full" || !tail
             ? info
-            : { ...info, message: `${info.message}\n─ 下載器輸出(尾段)─\n${tail}` },
+            : { ...info, message: `${info.message}\n─ Downloader output (tail) ─\n${tail}` },
         );
         appendLog(
           info.code === "disk-full"
@@ -1007,7 +1007,7 @@ export const nativeDriver: ServerDriver = {
     if (palDefenderLogDir(rec, ctx) !== null) {
       return [{ id: "paldefender" as const, label: "PalDefender", available: true }];
     }
-    return [{ id: "game" as const, label: "遊戲(原生)", available: fs.existsSync(gameLogFile(ctx)) }];
+    return [{ id: "game" as const, label: "Game (native)", available: fs.existsSync(gameLogFile(ctx)) }];
   },
 
   async streamLogs(rec, ctx, onLine, _onEnd, source = "agent") {

@@ -32,7 +32,7 @@ export function patchFastTravelJson(
   guids: string[] = FAST_TRAVEL_GUIDS,
 ): { before: number; after: number } {
   const sd = doc?.properties?.SaveData;
-  if (!sd || typeof sd !== "object") throw new Error("不是玩家存檔(缺 properties.SaveData)");
+  if (!sd || typeof sd !== "object") throw new Error("Not a player save (properties.SaveData is missing)");
   sd.value ??= {};
   let rd = sd.value.RecordData;
   if (!rd || typeof rd !== "object") {
@@ -79,9 +79,9 @@ export interface UnlockResult {
 }
 
 export function saveUnlocksSupport(rec: InstanceRecord): { supported: boolean; reason?: string } {
-  if (rec.backend !== "native") return { supported: false, reason: "存檔解鎖僅支援原生模式" };
+  if (rec.backend !== "native") return { supported: false, reason: "Save unlocks are only supported in native mode" };
   if (!palsavAssetName(rec) && !process.env.PALSERVER_PALSAV_BIN) {
-    return { supported: false, reason: "此主機平台不支援存檔工具(需 x64 Windows/Linux)" };
+    return { supported: false, reason: "This host platform does not support save tools (x64 Windows/Linux required)" };
   }
   return { supported: true };
 }
@@ -94,18 +94,18 @@ export async function unlockAllFastTravel(
   const support = saveUnlocksSupport(rec);
   if (!support.supported) throw Object.assign(new Error(support.reason), { statusCode: 409 });
   if (FAST_TRAVEL_GUIDS.length === 0) {
-    throw Object.assign(new Error("快速傳送點清單尚未內建,請更新 agent"), { statusCode: 500 });
+    throw Object.assign(new Error("Fast-travel point list is not bundled; update the agent"), { statusCode: 500 });
   }
   const guid = await activeWorldGuidAsync(rec, ctx);
-  if (!guid) throw Object.assign(new Error("找不到啟用中的世界存檔(GameUserSettings.ini 沒有 DedicatedServerName?)"), { statusCode: 409 });
+  if (!guid) throw Object.assign(new Error("Active world save not found (is DedicatedServerName missing from GameUserSettings.ini?)"), { statusCode: 409 });
 
   const playersDir = path.join(worldDirOf(rec, ctx, guid), "Players");
   if (!fs.existsSync(playersDir)) {
-    throw Object.assign(new Error("找不到玩家存檔資料夾(還沒有玩家加入過?)"), { statusCode: 409 });
+    throw Object.assign(new Error("Player save directory not found (has any player joined yet?)"), { statusCode: 409 });
   }
   const files = fs.readdirSync(playersDir).filter((f) => f.toLowerCase().endsWith(".sav"));
   if (files.length === 0) {
-    throw Object.assign(new Error("沒有任何玩家存檔"), { statusCode: 409 });
+    throw Object.assign(new Error("No player saves found"), { statusCode: 409 });
   }
 
   // 動手前整世界備份(含 Players/);失敗就中止,不做沒有退路的寫入。
@@ -132,7 +132,7 @@ export async function unlockAllFastTravel(
           windowsHide: true,
           timeout: 5 * 60_000,
         });
-        if (!fs.existsSync(outSav) || fs.statSync(outSav).size === 0) throw new Error("轉回 .sav 失敗(輸出為空)");
+        if (!fs.existsSync(outSav) || fs.statSync(outSav).size === 0) throw new Error("Failed to convert back to .sav (output is empty)");
         // 原子替換:先寫進同資料夾暫名再 rename,避免寫到一半的檔案
         const staged = path.join(playersDir, `${file}.palserver-new`);
         fs.copyFileSync(outSav, staged);

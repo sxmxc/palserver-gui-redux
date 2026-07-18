@@ -298,7 +298,7 @@ export class RestartSupervisor {
         at: new Date().toISOString(),
         reason: "crash",
         ok: false,
-        detail: `一小時內已重啟 ${recent.length} 次,達到上限後停止自動重啟`,
+        detail: `${recent.length} restarts occurred within one hour; automatic restarts are now disabled`,
       });
       return;
     }
@@ -324,7 +324,7 @@ export class RestartSupervisor {
         at: new Date().toISOString(),
         reason: "crash",
         ok: false,
-        detail: `自動重啟失敗:${err instanceof Error ? err.message : String(err)}`,
+        detail: `Automatic restart failed: ${err instanceof Error ? err.message : String(err)}`,
       });
     } finally {
       this.busy.delete(rec.id);
@@ -409,7 +409,7 @@ export class RestartSupervisor {
               at: new Date().toISOString(),
               reason,
               ok: false,
-              detail: "等待舊程序退出期間,伺服器已被手動重啟接手 — 本次排程重啟取消,不影響新程序。",
+              detail: "The server was manually restarted while waiting for the old process to exit — scheduled restart cancelled; the new process is unaffected.",
             });
             return;
           }
@@ -434,14 +434,14 @@ export class RestartSupervisor {
           at: new Date().toISOString(),
           reason,
           ok: false,
-          detail: "重啟等待期間偵測到手動停止 — 尊重停止指令,本次排程重啟取消(伺服器維持停止)。",
+              detail: "Manual stop detected while waiting to restart — respecting the stop command; scheduled restart cancelled.",
         });
         return;
       }
 
       const started = await driver.start(rec, ctx);
       if (!started) {
-        throw new Error("舊伺服器程序尚未退出,無法啟動新程序 — 本次重啟未執行(伺服器維持原狀)");
+        throw new Error("The old server process has not exited; unable to start a new process — restart not performed");
       }
 
       // Re-read state instead of writing back the copy we've held across a
@@ -464,7 +464,7 @@ export class RestartSupervisor {
         at: new Date().toISOString(),
         reason,
         ok: false,
-        detail: `重啟失敗:${err instanceof Error ? err.message : String(err)}`,
+        detail: `Restart failed: ${err instanceof Error ? err.message : String(err)}`,
       });
     } finally {
       this.busy.delete(rec.id);

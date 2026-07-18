@@ -35,10 +35,10 @@ async function ensureOozFile(): Promise<string> {
   const file = path.join(dir, "ooz.js");
   if (!fs.existsSync(file)) {
     const res = await fetch(OOZ_URL, { signal: AbortSignal.timeout(30_000) });
-    if (!res.ok) throw new Error(`下載 Oodle 解壓元件失敗:HTTP ${res.status}`);
+    if (!res.ok) throw new Error(`Failed to download the Oodle decompression component: HTTP ${res.status}`);
     const buf = Buffer.from(await res.arrayBuffer());
     const hash = crypto.createHash("sha256").update(buf).digest("hex");
-    if (hash !== OOZ_SHA256) throw new Error("Oodle 解壓元件雜湊不符,已拒絕載入(可能被竄改)");
+    if (hash !== OOZ_SHA256) throw new Error("Oodle decompression component checksum mismatch; loading was refused (it may have been tampered with)");
     fs.mkdirSync(dir, { recursive: true });
     fs.writeFileSync(file, buf);
   } else {
@@ -46,7 +46,7 @@ async function ensureOozFile(): Promise<string> {
     const hash = crypto.createHash("sha256").update(fs.readFileSync(file)).digest("hex");
     if (hash !== OOZ_SHA256) {
       fs.rmSync(file, { force: true });
-      throw new Error("Oodle 解壓元件雜湊不符,已移除;請再試一次(會重新下載)");
+      throw new Error("Oodle decompression component checksum mismatch; it was removed. Try again to download it again");
     }
   }
   return file;
@@ -68,7 +68,7 @@ function loadOoz(): Promise<OozModule> {
       const mod = { exports: null as unknown };
       new Function("module", "exports", src)(mod, mod.exports);
       const factory = mod.exports as () => Promise<OozModule>;
-      if (typeof factory !== "function") throw new Error("Oodle 解壓元件載入失敗(格式不符預期)");
+      if (typeof factory !== "function") throw new Error("Failed to load the Oodle decompression component (unexpected format)");
       return await factory();
     })();
     // 失敗就重置,下次呼叫重試(例如網路暫時不通)。
@@ -88,7 +88,7 @@ export async function oodleDecompress(data: Buffer, rawSize: number): Promise<Bu
   try {
     ooz.HEAPU8.set(data, srcPtr);
     const n = ooz._Kraken_Decompress(srcPtr, data.byteLength, dstPtr, rawSize);
-    if (n !== rawSize) throw new Error(`Oodle 解壓失敗(回傳 ${n},預期 ${rawSize})`);
+    if (n !== rawSize) throw new Error(`Oodle decompression failed (returned ${n}, expected ${rawSize})`);
     return Buffer.from(ooz.HEAPU8.subarray(dstPtr, dstPtr + rawSize));
   } finally {
     ooz._free(srcPtr);

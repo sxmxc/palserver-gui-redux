@@ -26,7 +26,7 @@ import { fileURLToPath } from "node:url";
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DATA_DIR = path.join(ROOT, "packages/web/public/game-data");
 const ICON_DIR = path.join(DATA_DIR, "humans");
-const UA = "palserver-gui-data-sync (maintainer-approved; github.com/io-software-ai/palserver-gui)";
+const UA = "palserver-gui-data-sync (maintainer-approved; github.com/sxmxc/palserver-gui-redux)";
 const PLACEHOLDER_ICON = "T_character_common_human_00.webp";
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));

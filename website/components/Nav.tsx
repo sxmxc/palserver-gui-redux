@@ -26,7 +26,7 @@ export default function Nav({ d, lang }: { d: Dictionary['nav']; lang: Locale })
         {/* 桌機:一整排控制項;手機隱藏,改由 NavMenu 漢堡收納 */}
         <div className="navctl">
           <LangSwitch current={lang} />
-          <a className="btn btn-g btn-sm" href="https://github.com/io-software-ai/palserver-gui">
+          <a className="btn btn-g btn-sm" href="https://github.com/sxmxc/palserver-gui-redux">
             <GitHubIcon />
             {d.github}
           </a>

@@ -19,7 +19,7 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DATA = path.join(ROOT, "packages/web/public/game-data");
-const UA = "palserver-gui-data-sync (maintainer-approved; github.com/io-software-ai/palserver-gui)";
+const UA = "palserver-gui-data-sync (maintainer-approved; github.com/sxmxc/palserver-gui-redux)";
 
 const [kind, newFile] = process.argv.slice(2).filter((a) => !a.startsWith("--"));
 const DRY = process.argv.includes("--dry");

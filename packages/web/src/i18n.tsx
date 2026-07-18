@@ -25,7 +25,7 @@ const KEY = "palserver.lang";
 const DICT_CACHE_PREFIX = "palserver.i18n.";
 const LOCAL_BASE = "/i18n/";
 const REMOTE_BASE =
-  "https://raw.githubusercontent.com/io-software-ai/palserver-gui/main/packages/web/public/i18n/";
+  "https://raw.githubusercontent.com/sxmxc/palserver-gui-redux/main/packages/web/public/i18n/";
 
 type Dict = Record<string, string>;
 

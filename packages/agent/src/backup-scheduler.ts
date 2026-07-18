@@ -75,7 +75,7 @@ export class BackupScheduler {
       } catch (err) {
         this.update(rec.id, {
           lastRunAt: new Date().toISOString(),
-          lastResult: `失敗:${err instanceof Error ? err.message : String(err)}`,
+          lastResult: `Failed: ${err instanceof Error ? err.message : String(err)}`,
         });
       }
     }
@@ -88,7 +88,7 @@ export class BackupScheduler {
     if (status.status !== "running") {
       return this.update(rec.id, {
         lastRunAt: new Date().toISOString(),
-        lastResult: "略過:伺服器未在運作中",
+        lastResult: "Skipped: server is not running",
       });
     }
 
@@ -98,7 +98,7 @@ export class BackupScheduler {
       if (players?.length === 0) {
         return this.update(rec.id, {
           lastRunAt: new Date().toISOString(),
-          lastResult: "略過:沒有玩家在線上",
+        lastResult: "Skipped: no players are online",
         });
       }
     }
@@ -107,7 +107,7 @@ export class BackupScheduler {
     if (!guid) {
       return this.update(rec.id, {
         lastRunAt: new Date().toISOString(),
-        lastResult: "失敗:GameUserSettings.ini 未指定 DedicatedServerName",
+        lastResult: "Failed: DedicatedServerName is not set in GameUserSettings.ini",
       });
     }
 
@@ -117,8 +117,8 @@ export class BackupScheduler {
       lastRunAt: new Date().toISOString(),
       lastResult:
         `成功:${backup.name}` +
-        (pruned.length > 0 ? `(清除 ${pruned.length} 個舊備份)` : "") +
-        (backup.flushedBeforeBackup ? "" : "(未先存檔:REST API 未啟用)"),
+        (pruned.length > 0 ? `(removed ${pruned.length} old backups)` : "") +
+        (backup.flushedBeforeBackup ? "" : "(not saved first: REST API is disabled)"),
     });
   }
 }

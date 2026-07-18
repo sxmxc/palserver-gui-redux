@@ -43,7 +43,7 @@ export function containerConverterCommand(
 }
 
 function safeName(value: string): string {
-  if (!/^[A-Za-z0-9_.-]+$/.test(value)) throw new Error("健檢暫存檔名不合法");
+  if (!/^[A-Za-z0-9_.-]+$/.test(value)) throw new Error("Invalid health-check temporary filename");
   return value;
 }
 
@@ -61,7 +61,7 @@ function collectTar(localPath: string): Promise<Buffer> {
     child.on("error", reject);
     child.on("close", (code) => {
       if (code === 0) return resolve(Buffer.concat(out));
-      reject(new Error(`建立容器健檢上傳封包失敗(exit ${code}):${Buffer.concat(err).toString("utf8").trim()}`));
+      reject(new Error(`Failed to create the container health-check upload archive (exit ${code}): ${Buffer.concat(err).toString("utf8").trim()}`));
     });
   });
 }

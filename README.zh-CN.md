@@ -133,7 +133,7 @@
 
 > 完整的图文教程(含邀请朋友、VPN 设置):**[官方网站](https://palserver-GUI.iosoftware.ai)** 与 **[常见问题](https://faq.toc.icu/)**
 
-1. 到 [Releases](https://github.com/io-software-ai/palserver-gui/releases) 下载你系统对应的压缩包
+1. 到 [Releases](https://github.com/sxmxc/palserver-gui-redux/releases) 下载你系统对应的压缩包
    (`palserver-agent-windows.zip` / `-linux.zip`),解压缩。
 2. 运行里面的 `palserver-agent`(Windows 是 `palserver-agent.exe`)。不用先装 Node 或 Docker。
 3. 窗口会印出一段说明,照着打开 **`http://localhost:8250`** —— 本机管理**不需要密码**。
@@ -180,7 +180,7 @@ agent 只有一道门:**本机(loopback)免验证,其他一律要 token。**
 | `PALSERVER_AUTO_UPDATE` | 未设 | `=0` 完全禁用 GUI 自我更新(连检查都不做) |
 | `PALSERVER_TELEMETRY` | 未设 | `=0` 强制禁用匿名使用统计 |
 | `PALSERVER_STATS_URL` | 官方统计端点 | 改成自架的统计后端 |
-| `PALSERVER_GITHUB_REPO` | `io-software-ai/palserver-gui` | 自我更新要看哪个 repo 的 Releases |
+| `PALSERVER_GITHUB_REPO` | `sxmxc/palserver-gui-redux` | 自我更新要看哪个 repo 的 Releases |
 | `PALSERVER_IMAGE_VANILLA` | `palserver/vanilla:latest` | docker 后端用的映像 |
 
 ### 数据放在哪
@@ -309,7 +309,7 @@ PALSERVER_IMAGE_VANILLA=palserver/dev-stub:latest pnpm dev:agent
 
 ## 当前状态
 
-**v2 目前版本为 v2.1.0**,已可直接到 [Releases](https://github.com/io-software-ai/palserver-gui/releases) 下载使用,
+**v2 目前版本为 v2.1.0**,已可直接到 [Releases](https://github.com/sxmxc/palserver-gui-redux/releases) 下载使用,
 上面列的功能都已经上线。
 
 尚未完成:多主机聚合管理;Docker 后端仍标示 beta(`images/modded` 尚未提供);PalDefender 的帕鲁导入规则等高级功能。

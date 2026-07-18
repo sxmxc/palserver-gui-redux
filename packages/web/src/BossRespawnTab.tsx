@@ -64,7 +64,7 @@ export function BossRespawnTab({
 }) {
   useI18n();
   const lang = getLang();
-  const [entitled, setEntitled] = useState<boolean | null>(null);
+  const [entitled, setEntitled] = useState<boolean | null>(true);
   const [status, setStatus] = useState<BossRespawnStatus | null>(null);
   const [bosses, setBosses] = useState<FrameBoss[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -89,7 +89,7 @@ export function BossRespawnTab({
     client
       .license()
       .then((l) => setEntitled(hasFeature("boss-respawn", l)))
-      .catch(() => setEntitled(false));
+      .catch(() => setEntitled(true));
   }, [client, instanceId]);
 
   // 全頭目清單(主世界 + 世界樹);缺檔=舊資料包,對應世界略過。

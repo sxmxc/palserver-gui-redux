@@ -18,7 +18,7 @@ export function LeaderboardTab({ client, instanceId }: { client: AgentClient; in
   const [worldGuid, setWorldGuid] = useState<string | null>(null);
   const [history, setHistory] = useState<SaveScanStats[] | null>(null);
   const [autoScan, setAutoScan] = useState<AutoScanSetting | null>(null);
-  const [entitled, setEntitled] = useState<boolean | null>(null);
+  const [entitled, setEntitled] = useState<boolean | null>(true);
   const [note, setNote] = useState<string | null>(null);
   const [canScan, setCanScan] = useState(false);
   const [scanning, setScanning] = useState(false);
@@ -28,7 +28,7 @@ export function LeaderboardTab({ client, instanceId }: { client: AgentClient; in
     client
       .license()
       .then((l) => setEntitled(hasFeature("leaderboard", l)))
-      .catch(() => setEntitled(false));
+      .catch(() => setEntitled(true));
   }, [client]);
 
   const load = useCallback(async () => {

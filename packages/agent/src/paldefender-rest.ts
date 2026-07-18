@@ -162,11 +162,11 @@ async function ensureToken(rec: InstanceRecord, dir: string): Promise<string> {
 
 export async function getPdRestStatus(rec: InstanceRecord, ctx: DriverContext): Promise<PdRestStatus> {
   if (serverPlatform(rec) !== "windows") {
-    return { installed: false, configExists: false, enabled: false, hasToken: false, port: 17993, reason: "玩家細節僅支援 Windows 伺服器" };
+    return { installed: false, configExists: false, enabled: false, hasToken: false, port: 17993, reason: "Player details are only supported on Windows servers" };
   }
   const dir = await getPdDir(rec, ctx);
   if (!dir) {
-    return { installed: false, configExists: false, enabled: false, hasToken: false, port: 17993, reason: "尚未安裝 PalDefender" };
+    return { installed: false, configExists: false, enabled: false, hasToken: false, port: 17993, reason: "PalDefender is not installed" };
   }
   const configFile = `${dir}/RESTAPI/RESTConfig.json`;
   const configExists = await existsInRuntime(rec, configFile);
@@ -174,13 +174,13 @@ export async function getPdRestStatus(rec: InstanceRecord, ctx: DriverContext): 
   if (!configExists) {
     return {
       installed: true, configExists: false, enabled: false, hasToken: false, port,
-      reason: "PalDefender 尚未生成 REST 設定 — 啟動一次伺服器即會產生",
+      reason: "PalDefender has not generated REST settings yet — start the server once to create them",
     };
   }
   if (!enabled) {
     return {
       installed: true, configExists: true, enabled: false, hasToken: false, port,
-      reason: "PalDefender REST API 未啟用 — 啟用後即可查看玩家的帕魯與背包",
+      reason: "PalDefender REST API is disabled — enable it to view player Pals and inventories",
     };
   }
   const hasToken = await existsInRuntime(rec, `${dir}/RESTAPI/Tokens/${TOKEN_FILE}`);
@@ -192,7 +192,7 @@ export async function getPdRestStatus(rec: InstanceRecord, ctx: DriverContext): 
  * configured on the next start — no manual enable/port/token steps needed. */
 export async function preConfigureRestApi(rec: InstanceRecord, ctx: DriverContext, port: number): Promise<void> {
   const dir = await getPdDir(rec, ctx);
-  if (!dir) throw Object.assign(new Error("尚未安裝 PalDefender"), { statusCode: 409 });
+  if (!dir) throw Object.assign(new Error("PalDefender is not installed"), { statusCode: 409 });
   const restApiDir = `${dir}/RESTAPI`;
   // Read existing config if present (PD may have generated defaults on a previous boot).
   const configFile = `${restApiDir}/RESTConfig.json`;
@@ -214,12 +214,12 @@ export async function preConfigureRestApi(rec: InstanceRecord, ctx: DriverContex
 /** Set Port in RESTConfig.json (preserving the rest of the file). */
 export async function setPdRestPort(rec: InstanceRecord, ctx: DriverContext, port: number): Promise<void> {
   const dir = await getPdDir(rec, ctx);
-  if (!dir) throw Object.assign(new Error("尚未安裝 PalDefender"), { statusCode: 409 });
+  if (!dir) throw Object.assign(new Error("PalDefender is not installed"), { statusCode: 409 });
   const file = `${dir}/RESTAPI/RESTConfig.json`;
   const raw = await readFileInRuntime(rec, file);
-  if (!raw) throw Object.assign(new Error("找不到 RESTConfig.json — 請先啟動一次伺服器"), { statusCode: 409 });
+  if (!raw) throw Object.assign(new Error("RESTConfig.json not found — start the server once first"), { statusCode: 409 });
   let cfg: Record<string, unknown>;
-  try { cfg = JSON.parse(raw); } catch { throw Object.assign(new Error("RESTConfig.json 格式損壞"), { statusCode: 409 }); }
+  try { cfg = JSON.parse(raw); } catch { throw Object.assign(new Error("RESTConfig.json is corrupt"), { statusCode: 409 }); }
   cfg.Port = port;
   await writeFileInRuntime(rec, file, JSON.stringify(cfg, null, 4));
 }
@@ -227,12 +227,12 @@ export async function setPdRestPort(rec: InstanceRecord, ctx: DriverContext, por
 /** Set Enabled in RESTConfig.json (preserving the rest of the file). */
 export async function setPdRestEnabled(rec: InstanceRecord, ctx: DriverContext, enabled: boolean): Promise<void> {
   const dir = await getPdDir(rec, ctx);
-  if (!dir) throw Object.assign(new Error("尚未安裝 PalDefender"), { statusCode: 409 });
+  if (!dir) throw Object.assign(new Error("PalDefender is not installed"), { statusCode: 409 });
   const file = `${dir}/RESTAPI/RESTConfig.json`;
   const raw = await readFileInRuntime(rec, file);
-  if (!raw) throw Object.assign(new Error("找不到 RESTConfig.json — 請先啟動一次伺服器"), { statusCode: 409 });
+  if (!raw) throw Object.assign(new Error("RESTConfig.json not found — start the server once first"), { statusCode: 409 });
   let cfg: Record<string, unknown>;
-  try { cfg = JSON.parse(raw); } catch { throw Object.assign(new Error("RESTConfig.json 格式損壞"), { statusCode: 409 }); }
+  try { cfg = JSON.parse(raw); } catch { throw Object.assign(new Error("RESTConfig.json is corrupt"), { statusCode: 409 }); }
   cfg.Enabled = enabled;
   await writeFileInRuntime(rec, file, JSON.stringify(cfg, null, 4));
 }
@@ -246,7 +246,7 @@ export async function provisionPdToken(
   regenerate: boolean,
 ): Promise<boolean> {
   const dir = await getPdDir(rec, ctx);
-  if (!dir) throw Object.assign(new Error("尚未安裝 PalDefender"), { statusCode: 409 });
+  if (!dir) throw Object.assign(new Error("PalDefender is not installed"), { statusCode: 409 });
   const file = `${dir}/RESTAPI/Tokens/${TOKEN_FILE}`;
   if (regenerate) {
     if (rec.backend === "native") { fs.rmSync(file, { force: true }); }
@@ -334,19 +334,19 @@ async function pdFetch<T>(
       signal: AbortSignal.timeout(8000),
     });
   } catch {
-    throw new PdRestError("無法連線到 PalDefender REST API — 伺服器可能未在運作中");
+    throw new PdRestError("Unable to connect to the PalDefender REST API — the server may not be running");
   }
   if (!res.ok) {
     const body = await res.json().catch(() => null);
     const code = (body as { Error?: { Code?: string } })?.Error?.Code;
-    if (code) throw new PdRestError(PD_ERROR_MESSAGES[code] ?? `PalDefender 回應錯誤(${code})`);
+    if (code) throw new PdRestError(PD_ERROR_MESSAGES[code] ?? `PalDefender returned an error (${code})`);
     if (res.status === 404) {
       throw new PdRestError(
         "PalDefender 沒有這個 API 端點 — 你的 PalDefender 版本可能尚未支援玩家細節,或設定/權杖變更後需要「重啟伺服器一次」讓它生效。",
       );
     }
     if (res.status === 401) throw new PdRestError(PD_ERROR_MESSAGES.INVALID_TOKEN);
-    throw new PdRestError(`PalDefender 回應 HTTP ${res.status}`);
+    throw new PdRestError(`PalDefender returned HTTP ${res.status}`);
   }
   return (await res.json()) as T;
 }
@@ -591,7 +591,7 @@ export async function givePalEgg(
 ): Promise<number> {
   const status = await getPdRestStatus(rec, ctx);
   if (!status.enabled) {
-    throw Object.assign(new Error(`帕魯蛋需要 PalDefender REST API:${status.reason}`), {
+    throw Object.assign(new Error(`Pal eggs require the PalDefender REST API: ${status.reason}`), {
       statusCode: 409,
     });
   }

@@ -60,7 +60,7 @@ export function PalStatsTab({
   const gameData = useGameData();
   // 原版數值(placeholder/大小寫校正);檔案缺失時為空物件,一切照舊
   const defaults = usePalStatsDefaults();
-  const [entitled, setEntitled] = useState<boolean | null>(null);
+  const [entitled, setEntitled] = useState<boolean | null>(true);
   const [status, setStatus] = useState<PalStatsStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -84,7 +84,7 @@ export function PalStatsTab({
     client
       .license()
       .then((l) => setEntitled(hasFeature("pal-stats", l)))
-      .catch(() => setEntitled(false));
+      .catch(() => setEntitled(true));
   }, [client, instanceId]);
 
   useEffect(() => {

@@ -46,7 +46,7 @@
 **絕不能改**。名稱翻譯（zh/ja）可以更新；`id` 一旦錯了，玩家資料就對不上。JSON 一律
 compact 單行（`JSON.stringify(x) + "\n"`），欄位順序固定 `id, name, icon, zh, "zh-CN", zhCN, ja, ...` 方便 diff。
 
-抓取一律帶 User-Agent `palserver-gui-data-sync (maintainer-approved; github.com/io-software-ai/palserver-gui)`
+抓取一律帶 User-Agent `palserver-gui-data-sync (maintainer-approved; github.com/sxmxc/palserver-gui-redux)`
 （維護者已獲 paldb.cc 同意，見 `packages/web/public/game-data/CREDITS.md`），並禮貌節流。
 
 ---

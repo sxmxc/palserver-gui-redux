@@ -52,7 +52,7 @@ export function PlayerDetailModal({
   const [error, setError] = useState<string | null>(null);
 
   // ── 存檔快照側 ──
-  const [entitled, setEntitled] = useState<boolean | null>(null);
+  const [entitled, setEntitled] = useState<boolean | null>(true);
   const [worldGuid, setWorldGuid] = useState<string | null>(null);
   const [generatedAt, setGeneratedAt] = useState<string | null>(null);
   const [profile, setProfile] = useState<SavePlayerProfile | null>(null);
@@ -80,7 +80,7 @@ export function PlayerDetailModal({
     client
       .license()
       .then((l) => setEntitled(hasFeature("save-slim", l)))
-      .catch(() => setEntitled(false));
+      .catch(() => setEntitled(true));
   }, [client, instanceId]);
 
   const restUid = detail?.available ? detail.playerUid : null;

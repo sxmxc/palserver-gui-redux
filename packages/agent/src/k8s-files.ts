@@ -8,7 +8,7 @@ export const POD_ROOT = "/palworld";
 const POD_TMP_ROOT = "/tmp/palserver-health";
 
 function badPath(): Error & { statusCode: number } {
-  return Object.assign(new Error("路徑不合法"), { statusCode: 400 });
+  return Object.assign(new Error("Invalid path"), { statusCode: 400 });
 }
 
 /**
@@ -44,7 +44,7 @@ export function loadKubeConfig(): k8s.KubeConfig {
   const kubeconfigPath = process.env.PALSERVER_KUBECONFIG;
   if (kubeconfigPath) {
     if (!fs.existsSync(kubeconfigPath)) {
-      throw Object.assign(new Error(`找不到指定 kubeconfig：${kubeconfigPath}`), { statusCode: 409 });
+      throw Object.assign(new Error(`Specified kubeconfig not found: ${kubeconfigPath}`), { statusCode: 409 });
     }
     kc.loadFromFile(kubeconfigPath);
     return kc;
@@ -106,7 +106,7 @@ async function podOf(rec: InstanceRecord): Promise<PodTarget> {
   const namespace = rec.k8sNamespace!;
   const statefulSet = rec.k8sStatefulSet!;
   const podName = await findPodName(coreApi, namespace, statefulSet);
-  if (!podName) throw new Error("找不到運行中的 game-server Pod");
+  if (!podName) throw new Error("No running game-server Pod found");
 
   const statefulSetApi = kc.makeApiClient(k8s.AppsV1Api);
   const sts = await statefulSetApi.readNamespacedStatefulSet({

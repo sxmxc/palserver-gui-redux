@@ -13,7 +13,7 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const PALS_DIR = path.join(ROOT, "packages/web/public/game-data/pals");
-const UA = "palserver-gui-data-sync (maintainer-approved; github.com/io-software-ai/palserver-gui)";
+const UA = "palserver-gui-data-sync (maintainer-approved; github.com/sxmxc/palserver-gui-redux)";
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 async function get(url) {

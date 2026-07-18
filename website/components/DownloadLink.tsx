@@ -3,8 +3,8 @@
 import { useEffect, useState, type MouseEventHandler, type ReactNode } from 'react';
 
 /** release 資產名固定不含版本號,GitHub 的 latest/download 永久連結會自動指到最新版。 */
-const RELEASES = 'https://github.com/io-software-ai/palserver-gui/releases';
-const LATEST = 'https://github.com/io-software-ai/palserver-gui/releases/latest/download/';
+const RELEASES = 'https://github.com/sxmxc/palserver-gui-redux/releases';
+const LATEST = 'https://github.com/sxmxc/palserver-gui-redux/releases/latest/download/';
 const ASSETS = {
   windows: 'palserver-agent-windows.zip',
   // mac/linux 用 tar.gz:zip 不保留執行權限

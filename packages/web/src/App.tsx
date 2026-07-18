@@ -205,7 +205,7 @@ function Dashboard({ client, onOpen }: { client: AgentClient; onOpen: (id: strin
   const [showReview, setShowReview] = useState(false); // 配置評估健檢彈窗
   const [extras, setExtras] = useState<Record<string, CardExtra>>({});
   // 進階顯示是贊助者先行功能(dashboard-stats),與其他早鳥功能同一套判斷。
-  const [entitled, setEntitled] = useState(false);
+  const [entitled, setEntitled] = useState(true);
   const toggleAdvanced = () =>
     setAdvanced((v) => {
       localStorage.setItem(ADVANCED_KEY, v ? "0" : "1");
@@ -216,7 +216,7 @@ function Dashboard({ client, onOpen }: { client: AgentClient; onOpen: (id: strin
     client
       .license()
       .then((l) => setEntitled(hasFeature("dashboard-stats", l)))
-      .catch(() => setEntitled(false));
+      .catch(() => setEntitled(true));
   }, [client]);
 
   const ordered = instances ? sortByOrder(instances, order) : [];

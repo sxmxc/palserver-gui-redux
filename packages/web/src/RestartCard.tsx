@@ -57,14 +57,14 @@ export function RestartCard({ client, instanceId }: { client: AgentClient; insta
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [entitled, setEntitled] = useState<boolean | null>(null);
+  const [entitled, setEntitled] = useState<boolean | null>(true);
   // 排程 UI 是三選項(每隔一段時間/每天固定時間/每天固定多個時間),但 policy
   // schema 只有 interval/daily 兩種 mode —— 「單一 vs 多個」由 dailyTimes 長度
   // 區分;kindOverride 記住使用者點了「多個」但還只填一格的狀態。
   const [kindOverride, setKindOverride] = useState<"daily" | "daily-multi" | null>(null);
 
   useEffect(() => {
-    client.license().then((l) => setEntitled(hasFeature("daily-restart", l))).catch(() => setEntitled(false));
+    client.license().then((l) => setEntitled(hasFeature("daily-restart", l))).catch(() => setEntitled(true));
   }, [client]);
 
   const refresh = useCallback(async () => {

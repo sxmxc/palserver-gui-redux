@@ -784,7 +784,7 @@ function LogsTab({ client, instanceId }: { client: AgentClient; instanceId: stri
   const [sources, setSources] = useState<LogSource[]>([]);
   const [source, setSource] = useState<LogSourceId | "">("");
   const [lines, setLines] = useState<string[]>([]);
-  const [entitled, setEntitled] = useState<boolean | null>(null);
+  const [entitled, setEntitled] = useState<boolean | null>(true);
   const prefs = useLogPrefs();
   const transRef = useRef<Map<string, string>>(new Map());
   const [, bumpTrans] = useState(0);
@@ -808,7 +808,7 @@ function LogsTab({ client, instanceId }: { client: AgentClient; instanceId: stri
   };
 
   useEffect(() => {
-    client.license().then((l) => setEntitled(hasFeature("log-tools", l))).catch(() => setEntitled(false));
+    client.license().then((l) => setEntitled(hasFeature("log-tools", l))).catch(() => setEntitled(true));
   }, [client]);
 
   useEffect(() => {

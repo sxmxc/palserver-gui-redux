@@ -41,9 +41,9 @@ $menu = New-Object System.Windows.Forms.ContextMenuStrip
 $open = $menu.Items.Add('打開管理介面')
 $open.add_Click({ Start-Process $Url })
 
-$code = $menu.Items.Add('顯示配對碼')
+$code = $menu.Items.Add('Show pairing code')
 $code.add_Click({
-  [System.Windows.Forms.MessageBox]::Show('配對碼:' + $Code + '  (在別的裝置連線時輸入)', 'palserver GUI') | Out-Null
+  [System.Windows.Forms.MessageBox]::Show('Pairing code: ' + $Code + '  (enter this when connecting from another device)', 'palserver GUI') | Out-Null
 })
 
 $menu.Items.Add((New-Object System.Windows.Forms.ToolStripSeparator)) | Out-Null

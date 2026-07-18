@@ -18,7 +18,7 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ASSETS = path.resolve(HERE, "../public/assets");
 const W = 1672, H = 941, SCALE = 2;
 
-const URL = "github.com/io-software-ai/palserver-gui";
+const URL = "github.com/sxmxc/palserver-gui-redux";
 const LANGS = {
   zh: {
     headline: '最簡單的<br><span class="blue">Palworld</span><br>伺服器管理工具',

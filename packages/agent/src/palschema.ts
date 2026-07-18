@@ -111,11 +111,11 @@ function writeMarker(root: string, patch: PalSchemaMarker): void {
 
 export async function getPalSchemaStatus(rec: InstanceRecord, ctx: DriverContext): Promise<PalSchemaStatus> {
   if (serverPlatform(rec) !== "windows") {
-    return { supported: false, reason: "PalSchema 僅支援 Windows 伺服器", ue4ss: false, installed: false, version: null };
+    return { supported: false, reason: "PalSchema only supports Windows servers", ue4ss: false, installed: false, version: null };
   }
   if (rec.backend === "k8s") {
     if (!(await runtimeExists(rec, ctx, WIN64_REL, "d"))) {
-      return { supported: false, reason: "伺服器尚未安裝完成 — 先啟動一次讓 agent 下載伺服器", ue4ss: false, installed: false, version: null };
+      return { supported: false, reason: "Server installation is incomplete — start it once so the agent can download the server", ue4ss: false, installed: false, version: null };
     }
     const ue4ss = await k8sUe4ssRel(rec, ctx);
     const marker = await readMarkerRuntime(rec, ctx);
@@ -130,7 +130,7 @@ export async function getPalSchemaStatus(rec: InstanceRecord, ctx: DriverContext
   }
   const root = serverRoot(rec, ctx);
   if (!fs.existsSync(win64Dir(root))) {
-    return { supported: false, reason: "伺服器尚未安裝完成 — 先啟動一次讓 agent 下載伺服器", ue4ss: false, installed: false, version: null };
+      return { supported: false, reason: "Server installation is incomplete — start it once so the agent can download the server", ue4ss: false, installed: false, version: null };
   }
   const marker = readMarker(root);
   const where = palSchemaWhere(root);
@@ -236,18 +236,18 @@ async function resolveRelease(
   const res = await fetch(endpoint, {
     headers: { "user-agent": "palserver-gui", accept: "application/vnd.github+json" },
   });
-  if (!res.ok) throw new Error(`GitHub release 查詢失敗 ${repo}@${tag}: HTTP ${res.status}`);
+  if (!res.ok) throw new Error(`GitHub release lookup failed for ${repo}@${tag}: HTTP ${res.status}`);
   const release = (await res.json()) as GitRelease;
   const asset = release.assets.find((a) => pick(a.name));
   if (!asset) {
-    throw new Error(`在 ${repo}@${release.tag_name} 找不到對應下載檔;可設 ${envUrl} 指定網址`);
+    throw new Error(`No matching download asset found in ${repo}@${release.tag_name}; set ${envUrl} to override the URL`);
   }
   return { version: release.tag_name, url: asset.browser_download_url };
 }
 
 async function downloadZip(url: string, dest: string): Promise<void> {
   const res = await fetch(url, { redirect: "follow" });
-  if (!res.ok) throw new Error(`下載失敗: HTTP ${res.status}`);
+  if (!res.ok) throw new Error(`Download failed: HTTP ${res.status}`);
   fs.writeFileSync(dest, Buffer.from(await res.arrayBuffer()));
 }
 
@@ -286,7 +286,7 @@ export async function installPalSchema(rec: InstanceRecord, ctx: DriverContext):
     await downloadZip(ue4ss.url, ue4ssZip);
     await extractZip(ue4ssZip, { dir: win64Dir(root) });
     if (!fs.existsSync(ue4ssDir(root))) {
-      throw new Error("UE4SS 解壓後找不到 UE4SS 目錄,佈局可能有變;可設 PALSERVER_UE4SS_PALWORLD_URL");
+      throw new Error("UE4SS directory not found after extraction; the layout may have changed. Set PALSERVER_UE4SS_PALWORLD_URL to override it");
     }
 
     // 2) UE4SS 設定:PalSchema 要求 dx11 + 關閉 UObjectArray 快取。
@@ -317,7 +317,7 @@ export async function installPalSchema(rec: InstanceRecord, ctx: DriverContext):
     await downloadZip(ps.url, psZip);
     await extractZip(psZip, { dir: ue4ssModsDir(root) });
     if (!fs.existsSync(palSchemaDir(root))) {
-      throw new Error("PalSchema 解壓後找不到 PalSchema 目錄,佈局可能有變;可設 PALSERVER_PALSCHEMA_URL");
+      throw new Error("PalSchema directory not found after extraction; the layout may have changed. Set PALSERVER_PALSCHEMA_URL to override it");
     }
 
     // 5) 建立我們自管的子 mod(metadata.json + raw/)。
@@ -355,7 +355,7 @@ async function installPalSchemaK8s(rec: InstanceRecord, ctx: DriverContext): Pro
       ? "UE4SS"
       : fs.existsSync(path.join(win64Stage, "ue4ss")) ? "ue4ss" : null;
     if (!stagedUe4ss) {
-      throw new Error("UE4SS 解壓後找不到 UE4SS 目錄,佈局可能有變;可設 PALSERVER_UE4SS_PALWORLD_URL");
+      throw new Error("UE4SS directory not found after extraction; the layout may have changed. Set PALSERVER_UE4SS_PALWORLD_URL to override it");
     }
     await copyTreeToPod(rec, win64Stage, WIN64_REL);
     const ue4ssRel = `${WIN64_REL}/${stagedUe4ss}`;
@@ -393,7 +393,7 @@ async function installPalSchemaK8s(rec: InstanceRecord, ctx: DriverContext): Pro
     await downloadZip(ps.url, psZip);
     await extractZip(psZip, { dir: psStage });
     if (!fs.existsSync(path.join(psStage, "PalSchema"))) {
-      throw new Error("PalSchema 解壓後找不到 PalSchema 目錄,佈局可能有變;可設 PALSERVER_PALSCHEMA_URL");
+      throw new Error("PalSchema directory not found after extraction; the layout may have changed. Set PALSERVER_PALSCHEMA_URL to override it");
     }
     await copyTreeToPod(rec, psStage, modsRel);
     await scaffoldOurModK8s(rec, ctx, ue4ssRel);
@@ -468,7 +468,7 @@ async function enableAutoReloadRuntime(rec: InstanceRecord, ctx: DriverContext, 
 /** 暫時停用/啟用 PalSchema(不刪檔):整個資料夾搬進/搬出 Mods-disabled/。 */
 export function setPalSchemaEnabled(rec: InstanceRecord, ctx: DriverContext, enabled: boolean): void {
   if (rec.backend !== "native" || process.platform !== "win32") {
-    throw Object.assign(new Error("停用/啟用僅支援 Windows 原生模式"), { statusCode: 409 });
+    throw Object.assign(new Error("Enable/disable is only supported in native Windows mode"), { statusCode: 409 });
   }
   const root = serverRoot(rec, ctx);
   const active = palSchemaDir(root);
@@ -489,7 +489,7 @@ function scaffoldOurMod(root: string): void {
     fs.writeFileSync(
       meta,
       JSON.stringify(
-        { name: OUR_MOD_NAME, authors: ["palserver-gui"], description: "GUI 管理的物種數值調整", version: "1.0.0" },
+        { name: OUR_MOD_NAME, authors: ["palserver-gui"], description: "Species stat adjustments managed by the GUI", version: "1.0.0" },
         null,
         2,
       ),
@@ -507,7 +507,7 @@ async function scaffoldOurModK8s(rec: InstanceRecord, ctx: DriverContext, ue4ssR
       ctx,
       metadataRel,
       JSON.stringify(
-        { name: OUR_MOD_NAME, authors: ["palserver-gui"], description: "GUI 管理的物種數值調整", version: "1.0.0" },
+        { name: OUR_MOD_NAME, authors: ["palserver-gui"], description: "Species stat adjustments managed by the GUI", version: "1.0.0" },
         null,
         2,
       ),
@@ -578,7 +578,7 @@ export async function getPalStats(rec: InstanceRecord, ctx: DriverContext): Prom
   const schema = await getPalSchemaStatus(rec, ctx);
   if (!schema.supported) return { supported: false, reason: schema.reason, schema, rows: [] };
   if (!schema.installed) {
-    return { supported: false, reason: "尚未安裝 PalSchema", schema, rows: [] };
+    return { supported: false, reason: "PalSchema is not installed", schema, rows: [] };
   }
   if (rec.backend === "k8s") {
     const ue4ss = await k8sUe4ssRel(rec, ctx);
@@ -597,8 +597,8 @@ export async function writePalStats(
 ): Promise<PalStatsStatus> {
   const schema = await getPalSchemaStatus(rec, ctx);
   if (!schema.supported) throw Object.assign(new Error(schema.reason ?? "unsupported"), { statusCode: 409 });
-  if (!schema.installed) throw Object.assign(new Error("尚未安裝 PalSchema"), { statusCode: 409 });
-  if (!ROW_RE.test(row)) throw Object.assign(new Error("無效的帕魯 row 名"), { statusCode: 400 });
+  if (!schema.installed) throw Object.assign(new Error("PalSchema is not installed"), { statusCode: 409 });
+  if (!ROW_RE.test(row)) throw Object.assign(new Error("Invalid Pal row name"), { statusCode: 400 });
 
   if (rec.backend === "k8s") {
     const ue4ss = await k8sUe4ssRel(rec, ctx);
@@ -610,7 +610,7 @@ export async function writePalStats(
   }
   const root = serverRoot(rec, ctx);
   if (schema.enabled === false) {
-    throw Object.assign(new Error("PalSchema 目前已停用 — 先按「啟用」再修改數值"), { statusCode: 409 });
+    throw Object.assign(new Error("PalSchema is currently disabled — enable it before editing stats"), { statusCode: 409 });
   }
   scaffoldOurMod(root); // 確保 raw/ 目錄存在(安裝後理應已在)
   try {
@@ -628,7 +628,7 @@ export async function writePalStats(
 export async function clearPalStats(rec: InstanceRecord, ctx: DriverContext): Promise<PalStatsStatus> {
   const schema = await getPalSchemaStatus(rec, ctx);
   if (!schema.supported) throw Object.assign(new Error(schema.reason ?? "unsupported"), { statusCode: 409 });
-  if (!schema.installed) throw Object.assign(new Error("尚未安裝 PalSchema"), { statusCode: 409 });
+  if (!schema.installed) throw Object.assign(new Error("PalSchema is not installed"), { statusCode: 409 });
   if (rec.backend === "k8s") {
     const ue4ss = await k8sUe4ssRel(rec, ctx);
     await scaffoldOurModK8s(rec, ctx, ue4ss);
@@ -639,7 +639,7 @@ export async function clearPalStats(rec: InstanceRecord, ctx: DriverContext): Pr
   }
   const root = serverRoot(rec, ctx);
   if (schema.enabled === false) {
-    throw Object.assign(new Error("PalSchema 目前已停用 — 先按「啟用」再刪除調整"), { statusCode: 409 });
+    throw Object.assign(new Error("PalSchema is currently disabled — enable it before deleting adjustments"), { statusCode: 409 });
   }
   scaffoldOurMod(root);
   const raw = readStatsRaw(root);

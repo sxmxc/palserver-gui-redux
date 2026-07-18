@@ -284,7 +284,7 @@ function HealthCard({
   running: boolean;
 }) {
   useI18n();
-  const [entitled, setEntitled] = useState<boolean | null>(null);
+  const [entitled, setEntitled] = useState<boolean | null>(true);
   const [worldGuid, setWorldGuid] = useState(() => (worlds.find((w) => w.active) ?? worlds[0]).guid);
   const [status, setStatus] = useState<SaveHealthStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -294,7 +294,7 @@ function HealthCard({
     client
       .license()
       .then((l) => setEntitled(hasFeature("save-slim", l)))
-      .catch(() => setEntitled(false));
+      .catch(() => setEntitled(true));
   }, [client, instanceId]);
 
   // 選中的世界被刪掉時退回啟用世界

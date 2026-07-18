@@ -248,14 +248,14 @@ export function BreedingTab({ client, instanceId }: { client: AgentClient; insta
   const [maxGenerations, setMaxGenerations] = useState(4);
   const [calculating, setCalculating] = useState(false);
   const [solution, setSolution] = useState<ReturnType<typeof solveBreeding> | null>(null);
-  const [entitled, setEntitled] = useState<boolean | null>(null);
+  const [entitled, setEntitled] = useState<boolean | null>(true);
   const scanTimer = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     client
       .license()
       .then((l) => setEntitled(hasFeature("breeding-calc", l)))
-      .catch(() => setEntitled(false));
+      .catch(() => setEntitled(true));
   }, [client]);
   useEffect(
     () => () => {

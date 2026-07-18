@@ -23,7 +23,7 @@ import { fileURLToPath } from "node:url";
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const OUT = path.join(ROOT, "packages/web/public/game-data/pal-stats-defaults.json");
 
-const UA = "palserver-gui data fetcher (github.com/io-software-ai/palserver-gui)";
+const UA = "palserver-gui data fetcher (github.com/sxmxc/palserver-gui-redux)";
 const CONCURRENCY = 6;
 
 /** 顯示標籤 → 我們的欄位鍵(= uasset 鍵名)。 */

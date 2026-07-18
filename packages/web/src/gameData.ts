@@ -84,7 +84,7 @@ export function findCharacter(d: GameData | null, id: string): CharacterHit | un
 }
 
 const REMOTE_BASE =
-  "https://raw.githubusercontent.com/io-software-ai/palserver-gui/main/packages/web/public/game-data/";
+  "https://raw.githubusercontent.com/sxmxc/palserver-gui-redux/main/packages/web/public/game-data/";
 
 let cache: GameData | null = null;
 let inflight: Promise<GameData> | null = null;

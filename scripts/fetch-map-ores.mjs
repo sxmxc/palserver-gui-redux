@@ -21,7 +21,7 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DATA_DIR = path.join(ROOT, "packages/web/public/game-data");
-const UA = "palserver-gui-data-sync (maintainer-approved; github.com/io-software-ai/palserver-gui)";
+const UA = "palserver-gui-data-sync (maintainer-approved; github.com/sxmxc/palserver-gui-redux)";
 
 // map_data 的 type → 輸出 key / items.json id / 圓點顏色(白邊圓點,深淺對比即可)
 const TYPES = {

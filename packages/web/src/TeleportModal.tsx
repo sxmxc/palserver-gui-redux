@@ -26,7 +26,7 @@ export function TeleportModal({
   onClose: () => void;
 }) {
   useI18n();
-  const [entitled, setEntitled] = useState<boolean | null>(null);
+  const [entitled, setEntitled] = useState<boolean | null>(true);
   const [players, setPlayers] = useState<KnownPlayer[]>([]);
   const [source, setSource] = useState(initialSource ?? "");
   const [mode, setMode] = useState<"player" | "coords">("player");
@@ -41,7 +41,7 @@ export function TeleportModal({
     client
       .license()
       .then((l) => setEntitled(hasFeature("teleport", l)))
-      .catch(() => setEntitled(false));
+      .catch(() => setEntitled(true));
     client.knownPlayers(instanceId).then(setPlayers).catch(() => setPlayers([]));
   }, [client, instanceId]);
 

@@ -15,7 +15,7 @@ export type PalStatsDefaults = Record<string, Partial<Record<PalStatKey, number>
 
 const FILE = "pal-stats-defaults.json";
 const REMOTE_BASE =
-  "https://raw.githubusercontent.com/io-software-ai/palserver-gui/main/packages/web/public/game-data/";
+  "https://raw.githubusercontent.com/sxmxc/palserver-gui-redux/main/packages/web/public/game-data/";
 
 let cache: PalStatsDefaults | null = null;
 let inflight: Promise<PalStatsDefaults> | null = null;

@@ -41,13 +41,13 @@ export function GuildDetailModal({
   const [scanError, setScanError] = useState<string | null>(null);
   // 「詳細資訊」開關:駐守帕魯/公會倉庫/研究(贊助內容);狀態記憶在 localStorage
   const [showDetails, toggleDetails] = useDetailsPref();
-  const [entitled, setEntitled] = useState<boolean | null>(null);
+  const [entitled, setEntitled] = useState<boolean | null>(true);
 
   useEffect(() => {
     client
       .license()
       .then((l) => setEntitled(hasFeature("save-slim", l)))
-      .catch(() => setEntitled(false));
+      .catch(() => setEntitled(true));
   }, [client, instanceId]);
 
   useEffect(() => {

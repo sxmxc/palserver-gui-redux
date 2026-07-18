@@ -25,7 +25,7 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DATA_DIR = path.join(ROOT, "packages/web/public/game-data");
-const UA = "palserver-gui-data-sync (maintainer-approved; github.com/io-software-ai/palserver-gui)";
+const UA = "palserver-gui-data-sync (maintainer-approved; github.com/sxmxc/palserver-gui-redux)";
 
 /** shared savToWorldTreeMap 的同式(scripts 不 import TS;改公式兩邊同步,見 shared/src/index.ts)。 */
 const TREE_MIN = { x: 347351.5, y: -818197 };
