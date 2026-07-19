@@ -61,10 +61,10 @@ async function call<T>(
       signal: AbortSignal.timeout(TIMEOUT_MS),
     });
   } catch {
-    throw new RestError("無法連線到伺服器的 REST API — 伺服器可能未在運作中", 503);
+    throw new RestError("Unable to reach the server REST API. The server may not be running.", 503);
   }
-  if (res.status === 401) throw new RestError("REST API 認證失敗 — 管理員密碼可能不符", 401);
-  if (!res.ok) throw new RestError(`REST API 回應 HTTP ${res.status}`, 502);
+  if (res.status === 401) throw new RestError("REST API authentication failed. The administrator password may be incorrect.", 401);
+  if (!res.ok) throw new RestError(`REST API returned HTTP ${res.status}`, 502);
 
   const text = await res.text();
   return (text ? JSON.parse(text) : undefined) as T;

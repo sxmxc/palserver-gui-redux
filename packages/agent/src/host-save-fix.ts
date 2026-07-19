@@ -374,22 +374,32 @@ function patchGuildOwnership(
   return { patchedGuildHandles, patchedGuildAdmins, patchedGuildMembers };
 }
 
+function matchingLevelPlayerUidOffsets(data: Buffer, playerUid: string, instanceRaw: Buffer): number[] {
+  const playerUids = findGuidProps(data, "PlayerUId").filter((p) => p.uuid === playerUid);
+  const instances = findGuidProps(data, "InstanceId").filter((p) => sameRawId(data.subarray(p.offset, p.offset + 16), instanceRaw));
+  // Recent saves can serialize InstanceId before PlayerUId and may insert new
+  // fields between them. Restrict the match to the same nearby map entry.
+  const nearby = playerUids.filter((uid) => instances.some((instance) => Math.abs(instance.offset - uid.offset) <= 4096));
+  // A PlayerUid is normally unique in Level.sav. If its adjacent InstanceId is
+  // no longer serialized in the old layout, the unique PlayerUid remains a
+  // safer target than abandoning a recoverable transfer.
+  return nearby.length > 0 ? nearby.map((p) => p.offset) : playerUids.length === 1 ? [playerUids[0].offset] : [];
+}
+
 function playerInstanceRaws(data: Buffer, playerUid: string): Buffer[] {
-  const instanceAnchor = Buffer.concat([fstr("InstanceId"), STRUCT_PROP]);
+  const playerUids = findGuidProps(data, "PlayerUId").filter((p) => p.uuid === playerUid);
+  const allInstances = findGuidProps(data, "InstanceId");
   const seen = new Set<string>();
   const out: Buffer[] = [];
-  for (const uid of findGuidProps(data, "PlayerUId")) {
-    if (uid.uuid !== playerUid) continue;
-    const window = data.subarray(uid.offset + 16, Math.min(uid.offset + 16 + 512, data.length));
-    const rel = window.indexOf(instanceAnchor);
-    if (rel < 0) continue;
-    const offset = uid.offset + 16 + rel + instanceAnchor.length + 8 + GUID_TYPE.length + 16 + 1;
-    if (offset + 16 > data.length) continue;
-    const raw = data.subarray(offset, offset + 16);
-    const key = raw.toString("hex");
-    if (!seen.has(key)) {
-      seen.add(key);
-      out.push(raw);
+  for (const uid of playerUids) {
+    for (const instance of allInstances) {
+      if (Math.abs(instance.offset - uid.offset) > 4096) continue;
+      const raw = data.subarray(instance.offset, instance.offset + 16);
+      const key = raw.toString("hex");
+      if (!seen.has(key)) {
+        seen.add(key);
+        out.push(raw);
+      }
     }
   }
   return out;
@@ -419,20 +429,20 @@ export async function applyHostFix(
   newSavName: string,
 ): Promise<Omit<HostFixResult, "backup">> {
   if (!SAV_NAME_RE.test(oldSavName) || !SAV_NAME_RE.test(newSavName)) {
-    throw fail("玩家存檔檔名格式不合法", 422);
+    throw fail("Player save filename is invalid", 422);
   }
   if (oldSavName.toLowerCase() === newSavName.toLowerCase()) {
-    throw fail("新舊角色檔相同,不需修復", 422);
+    throw fail("The source and target character saves are the same", 422);
   }
   const playersDir = path.join(worldDir, "Players");
   const oldPath = path.join(playersDir, oldSavName);
   const newPath = path.join(playersDir, newSavName);
   const levelPath = path.join(worldDir, "Level.sav");
-  if (!fs.existsSync(oldPath)) throw fail(`找不到舊角色檔 ${oldSavName}`, 404);
+  if (!fs.existsSync(oldPath)) throw fail(`Source player save ${oldSavName} was not found`, 404);
   if (!fs.existsSync(newPath)) {
-    throw fail(`找不到新角色檔 ${newSavName} — 該玩家要先用自己的帳號加入伺服器一次`, 404);
+    throw fail(`Target player save ${newSavName} was not found. The player must join this server once first.`, 404);
   }
-  if (!fs.existsSync(levelPath)) throw fail("找不到 Level.sav", 404);
+  if (!fs.existsSync(levelPath)) throw fail("Level.sav was not found", 404);
 
   const oldUid = savNameToUuid(oldSavName);
   const newUid = savNameToUuid(newSavName);
@@ -446,38 +456,25 @@ export async function applyHostFix(
   const matching = uidProps.filter((p) => p.uuid === oldUid);
   if (uidProps.length !== 2 || matching.length !== 2) {
     throw fail(
-      `舊角色檔的 PlayerUId 欄位不符預期(找到 ${uidProps.length} 個,其中 ${matching.length} 個等於 ${oldUid})— 檔案格式可能已變更,已中止以免壞檔`,
+      `Source player save has unexpected PlayerUId fields (found ${uidProps.length}; ${matching.length} match ${oldUid}). The transfer was cancelled to protect the save.`,
       422,
     );
   }
   const instProps = findGuidProps(oldPlayer.data, "InstanceId");
   if (instProps.length !== 1) {
-    throw fail(`舊角色檔的 InstanceId 欄位不符預期(找到 ${instProps.length} 個)— 已中止以免壞檔`, 422);
+    throw fail(`Source player save has an unexpected InstanceId field count (${instProps.length}). The transfer was cancelled to protect the save.`, 422);
   }
   const instanceUid = instProps[0].uuid;
   const instRaw = uuidToRaw(instanceUid);
   for (const p of matching) newRaw.copy(oldPlayer.data, p.offset);
 
-  // ── Level.sav:CharacterSaveParameterMap 裡「PlayerUId==舊 && 後隨 InstanceId==角色實例」
-  //    的那一筆,把 PlayerUId 改成新的。錨定要求 InstanceId 緊跟在同一條目內(≤256 bytes)。
+  // Level.sav links the character by PlayerUId and InstanceId. Both field
+  // order and spacing changed in recent saves, so match either nearby order.
   const level = await decompressSav(fs.readFileSync(levelPath));
-  const levelUids = findGuidProps(level.data, "PlayerUId");
-  const targets: number[] = [];
-  for (const p of levelUids) {
-    if (p.uuid !== oldUid) continue;
-    const windowEnd = Math.min(p.offset + 16 + 256, level.data.length);
-    const windowBuf = level.data.subarray(p.offset + 16, windowEnd);
-    const anchor = Buffer.concat([fstr("InstanceId"), STRUCT_PROP]);
-    const rel = windowBuf.indexOf(anchor);
-    if (rel === -1) continue;
-    const instOff = p.offset + 16 + rel + anchor.length + 8 + GUID_TYPE.length + 16 + 1;
-    if (Buffer.compare(level.data.subarray(instOff, instOff + 16), instRaw) === 0) {
-      targets.push(p.offset);
-    }
-  }
+  const targets = matchingLevelPlayerUidOffsets(level.data, oldUid, instRaw);
   if (targets.length !== 1) {
     throw fail(
-      `Level.sav 裡符合該角色(InstanceId=${instanceUid})的條目數不符預期(${targets.length},應為 1)— 已中止以免壞檔`,
+      `Level.sav has ${targets.length} matching entries for this character (InstanceId=${instanceUid}; expected 1). The transfer was cancelled to protect the save.`,
       422,
     );
   }
@@ -579,18 +576,18 @@ export async function transferPalOwners(
   fromUid: string,
   toSavName: string,
 ): Promise<{ fromUid: string; toUid: string; patchedPalOwners: number }> {
-  if (!SAV_NAME_RE.test(toSavName)) throw fail("目標玩家存檔檔名格式不合法", 422);
+  if (!SAV_NAME_RE.test(toSavName)) throw fail("目標Player save filename is invalid", 422);
   const toUid = savNameToUuid(toSavName);
   if (fromUid.toLowerCase() === toUid.toLowerCase()) throw fail("來源與目標相同,不需過戶", 422);
   const toPath = path.join(worldDir, "Players", toSavName);
   if (!fs.existsSync(toPath)) throw fail(`找不到目標玩家存檔 ${toSavName}`, 404);
   const levelPath = path.join(worldDir, "Level.sav");
-  if (!fs.existsSync(levelPath)) throw fail("找不到 Level.sav", 404);
+  if (!fs.existsSync(levelPath)) throw fail("Level.sav was not found", 404);
 
   const level = await decompressSav(fs.readFileSync(levelPath));
   const owners = findGuidProps(level.data, "OwnerPlayerUId").filter((p) => p.uuid === fromUid.toLowerCase());
   if (owners.length === 0) {
-    throw fail(`Level.sav 裡沒有掛在 ${fromUid} 名下的帕魯,不需過戶`, 404);
+    throw fail(`Level.sav has no Pals owned by ${fromUid}; nothing needs to be transferred`, 404);
   }
   const toRaw = uuidToRaw(toUid);
   for (const p of owners) toRaw.copy(level.data, p.offset);

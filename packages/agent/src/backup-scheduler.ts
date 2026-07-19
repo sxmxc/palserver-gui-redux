@@ -116,7 +116,7 @@ export class BackupScheduler {
     return this.update(rec.id, {
       lastRunAt: new Date().toISOString(),
       lastResult:
-        `成功:${backup.name}` +
+        `Success: ${backup.name}` +
         (pruned.length > 0 ? `(removed ${pruned.length} old backups)` : "") +
         (backup.flushedBeforeBackup ? "" : "(not saved first: REST API is disabled)"),
     });

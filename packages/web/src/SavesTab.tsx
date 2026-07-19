@@ -36,6 +36,13 @@ const fmtSize = (n: number) =>
   n >= 1 << 30 ? `${(n / (1 << 30)).toFixed(2)} GB` : `${(n / (1 << 20)).toFixed(1)} MB`;
 const fmtWhen = (iso: string) => new Date(iso).toLocaleString();
 
+/** Translate results persisted by older releases without changing their backup filenames. */
+const backupResultText = (result: string) => {
+  if (result.startsWith("成功:")) return `Success: ${result.slice("成功:".length)}`;
+  if (result.startsWith("失敗:")) return `Failed: ${result.slice("失敗:".length)}`;
+  return t(result);
+};
+
 export function SavesTab({
   client,
   instanceId,
@@ -727,7 +734,7 @@ function ScheduleCard({
 
       <p className="text-[13px] text-ink-muted">
         {schedule.lastRunAt
-          ? `${t("上次執行")} ${fmtWhen(schedule.lastRunAt)} — ${schedule.lastResult ? t(schedule.lastResult) : ""}`
+          ? `${t("上次執行")} ${fmtWhen(schedule.lastRunAt)} — ${schedule.lastResult ? backupResultText(schedule.lastResult) : ""}`
           : t("尚未執行過。備份只在伺服器運作中進行。")}
       </p>
 
