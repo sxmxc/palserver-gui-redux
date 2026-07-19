@@ -33,12 +33,12 @@ if ($IconPng -and (Test-Path $IconPng)) {
     $notify.Icon = [System.Drawing.Icon]::FromHandle($bmp.GetHicon())
   } catch { }
 }
-$notify.Text = 'palserver GUI 引擎運作中'
+$notify.Text = 'palserver GUI is running'
 $notify.Visible = $true
 
 $menu = New-Object System.Windows.Forms.ContextMenuStrip
 
-$open = $menu.Items.Add('打開管理介面')
+$open = $menu.Items.Add('Open management interface')
 $open.add_Click({ Start-Process $Url })
 
 $code = $menu.Items.Add('Show pairing code')
@@ -48,7 +48,7 @@ $code.add_Click({
 
 $menu.Items.Add((New-Object System.Windows.Forms.ToolStripSeparator)) | Out-Null
 
-$quit = $menu.Items.Add('結束 palserver GUI')
+$quit = $menu.Items.Add('Quit palserver GUI')
 $quit.add_Click({
   $notify.Visible = $false
   Stop-Process -Id $AgentPid -Force
