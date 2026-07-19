@@ -287,7 +287,8 @@ function inspectGuildRawData(raw: Buffer): GuildRecord | null {
                 if (markerCount !== null) {
                   let markersOk = true;
                   for (let i = 0; i < markerCount; i++) {
-                    if (take(state, 44) === null || take(state, 4) === null) {
+                    // FPalGuildMarkerData = marker Guid (16) + Vector (24) + type (4) + owner Guid (16).
+                    if (take(state, 44) === null) {
                       markersOk = false;
                       break;
                     }
