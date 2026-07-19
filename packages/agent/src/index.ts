@@ -49,6 +49,7 @@ if (
   IS_PORTABLE_EXE &&
   !process.env.PALSERVER_TRAY_CHILD &&
   !process.env.PALSERVER_CONSOLE &&
+  process.env.pm_id === undefined &&
   resolveWebDist() !== null
 ) {
   try {
@@ -59,7 +60,7 @@ if (
       env: { ...process.env, PALSERVER_TRAY_CHILD: "1" },
     });
     child.unref();
-    process.stdout.write("\n  palserver GUI 已在背景啟動,系統匣(右下角)有圖示。這個視窗可以關閉。\n\n");
+    process.stdout.write("\n  palserver GUI is running in the background. Its icon is in the system tray; this window can be closed.\n\n");
     process.exit(0);
   } catch {
     /* 重啟失敗就照常在這個主控台繼續跑 */
@@ -194,7 +195,7 @@ startAutoScanLoop({
 const updateOps: UpdateOps = {
   canApply: () =>
     store.list().some((rec) => isInstalling(rec.id))
-      ? "有伺服器正在安裝檔案,請等安裝完成再更新"
+      ? "A server installation is in progress; wait for it to finish before updating."
       : null,
   onRestart: () => app.close(),
   log: (msg) => app.log.info(`[update] ${msg}`),
@@ -215,10 +216,10 @@ void (async () => {
     try {
       const { status } = await driver.status(rec, { instanceDir: store.instanceDir(rec.id) });
       if (status === "running" || status === "restarting" || status === "installing") continue;
-      app.log.info(`自動啟動伺服器:${rec.name}`);
+      app.log.info(`Automatically starting server: ${rec.name}`);
       await driver.start(rec, { instanceDir: store.instanceDir(rec.id) });
     } catch (err) {
-      app.log.warn(`自動啟動 ${rec.name} 失敗:${err instanceof Error ? err.message : String(err)}`);
+      app.log.warn(`Automatic start failed for ${rec.name}: ${err instanceof Error ? err.message : String(err)}`);
     }
   }
 })();
@@ -257,18 +258,18 @@ if (process.env.PALSERVER_TRAY_CHILD) {
 }
 }
 
-// EADDRINUSE 幾乎都是「玩家又點了一次」:別噴一大坨堆疊,給一句友善說明並打開既有的介面。
+// EADDRINUSE usually means the launcher was started twice. Avoid a stack trace and point to the existing interface.
 void main().catch((err: NodeJS.ErrnoException) => {
   if (err?.code === "EADDRINUSE") {
     const url = `http://localhost:${PORT}`;
     process.stdout.write(
-      `\n  palserver GUI 已經在執行了(埠 ${PORT} 已被使用),不用再開一個。\n` +
-        `  直接打開管理介面即可:${url}\n\n`,
+      `\n  palserver GUI is already running (port ${PORT} is in use). Do not start another copy.\n` +
+        `  Open the management interface instead: ${url}\n\n`,
     );
     if (OPEN_BROWSER) openBrowser(url);
     process.exit(0);
   }
-  process.stderr.write(`\n  palserver GUI agent 啟動失敗:${err?.message ?? String(err)}\n\n`);
+  process.stderr.write(`\n  palserver GUI agent failed to start: ${err?.message ?? String(err)}\n\n`);
   process.exit(1);
 });
 

@@ -468,8 +468,17 @@ export function restartSelf(): boolean {
   return true;
 }
 
-/** 用同樣的參數重新啟動自己,然後讓舊行程退場。 */
+/**
+ * Restart the standalone executable. PM2 owns the process lifecycle itself, so
+ * spawning a detached replacement there would create a second agent competing
+ * for the same HTTP port. In that environment, exit cleanly and let PM2 start
+ * the replacement binary it already supervises.
+ */
 function respawn(exePath: string): void {
+  if (process.env.pm_id !== undefined) {
+    setTimeout(() => process.exit(0), 500).unref();
+    return;
+  }
   const child = spawn(exePath, process.argv.slice(2), {
     detached: true,
     stdio: "ignore",
@@ -477,7 +486,7 @@ function respawn(exePath: string): void {
     env: process.env,
   });
   child.unref();
-  // 給新行程一點時間搶下埠口,再讓自己消失。
+  // Give the replacement process time to claim the port before this process exits.
   setTimeout(() => process.exit(0), 500).unref();
 }
 
