@@ -580,10 +580,10 @@ function WorldCard({
               title={
                 hasCoopHost
                   ? t("這個世界含共玩主機角色檔 — 一鍵過戶給專用伺服器的新角色")
-                  : t("共玩存檔的角色過戶與帕魯歸屬修復")
+                  : t("移轉匯入玩家角色")
               }
             >
-              <FiTool className="size-4" /> {t("共玩修復")}
+              <FiTool className="size-4" /> {t(hasCoopHost ? "共玩修復" : "移轉匯入玩家角色")}
             </button>
           )}
         </div>

@@ -1711,5 +1711,15 @@
   "批量給予道具目前僅支援 Windows 伺服器": "Bulk giving items is currently supported only on Windows servers.",
   "需要先安裝 PalDefender 才能發道具": "Install PalDefender before giving items.",
   "RCON 未啟用 — 請到世界設定開啟 RCONEnabled 並重啟伺服器": "RCON is disabled — enable RCONEnabled in World settings, then restart the server.",
-  "尚未設定管理員密碼 — 請到世界設定填入 AdminPassword 並重啟": "No administrator password is configured — set AdminPassword in World settings, then restart the server."
+  "尚未設定管理員密碼 — 請到世界設定填入 AdminPassword 並重啟": "No administrator password is configured — set AdminPassword in World settings, then restart the server.",
+  "移轉匯入玩家角色": "Transfer imported player character",
+  "選擇匯入的原本角色與你加入新伺服器後建立的角色。移轉會保留原本角色的資料、帕魯歸屬，並更新 Level.sav 對應；執行前會自動備份。": "Choose the original imported character and the character created when you joined this server. The transfer preserves the original character and Pal ownership, updates Level.sav, and creates a backup first.",
+  "至少要有原本角色與新建立的角色各一個，才能移轉。": "You need both the original character and a newly created character before transferring.",
+  "原本的角色(要保留)": "Original character (keep this)",
+  "新建立的角色(會被取代)": "New character (will be replaced)",
+  "移轉會覆蓋所選的新角色檔並刪除原本角色檔；執行前會自動備份整個世界，出問題可一鍵還原。": "The selected new character save will be replaced and the original save removed. A full world backup is created first and can be restored if needed.",
+  "移轉中…": "Transferring…",
+  "執行移轉": "Transfer character",
+  "移轉完成!原本角色已過戶給新 ID。": "Done! The original character has been transferred to the new ID.",
+  "移轉匯入玩家角色，或修復共玩存檔的帕魯歸屬": "Transfer an imported player character, or repair Pal ownership for a co-op save."
 }
