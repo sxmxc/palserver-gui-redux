@@ -375,15 +375,23 @@ function patchGuildOwnership(
 }
 
 function matchingLevelPlayerUidOffsets(data: Buffer, playerUid: string, instanceRaw: Buffer): number[] {
-  const playerUids = findGuidProps(data, "PlayerUId").filter((p) => p.uuid === playerUid);
+  const allPlayerUids = findGuidProps(data, "PlayerUId");
+  const playerUids = allPlayerUids.filter((p) => p.uuid === playerUid);
   const instances = findGuidProps(data, "InstanceId").filter((p) => sameRawId(data.subarray(p.offset, p.offset + 16), instanceRaw));
   // Recent saves can serialize InstanceId before PlayerUId and may insert new
   // fields between them. Restrict the match to the same nearby map entry.
   const nearby = playerUids.filter((uid) => instances.some((instance) => Math.abs(instance.offset - uid.offset) <= 4096));
+  if (nearby.length > 0) return nearby.map((p) => p.offset);
+  // Some imported saves have a stale Players/<uid>.sav filename while the
+  // character instance remains intact in Level.sav under another old UID. An
+  // instance ID is globally unique, so use its one nearby PlayerUId entry only
+  // when that relationship is unambiguous.
+  const byInstance = allPlayerUids.filter((uid) => instances.some((instance) => Math.abs(instance.offset - uid.offset) <= 4096));
+  if (byInstance.length === 1) return [byInstance[0].offset];
   // A PlayerUid is normally unique in Level.sav. If its adjacent InstanceId is
   // no longer serialized in the old layout, the unique PlayerUid remains a
   // safer target than abandoning a recoverable transfer.
-  return nearby.length > 0 ? nearby.map((p) => p.offset) : playerUids.length === 1 ? [playerUids[0].offset] : [];
+  return playerUids.length === 1 ? [playerUids[0].offset] : [];
 }
 
 function playerInstanceRaws(data: Buffer, playerUid: string): Buffer[] {
