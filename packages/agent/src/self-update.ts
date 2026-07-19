@@ -32,6 +32,13 @@ const CHECK_TTL_MS = 6 * 60 * 60 * 1000;
 const CHECK_INTERVAL_MS = 6 * 60 * 60 * 1000;
 const CHECKSUMS_ASSET = "SHA256SUMS.txt";
 
+/** True when an external supervisor, rather than the agent, owns restarts. */
+export function isProcessManagerManaged(): boolean {
+  // pm_id is supplied by PM2. PALSERVER_MANAGED=1 is an explicit fallback for
+  // PM2 ecosystem configurations and other supervisors that do not expose it.
+  return process.env.pm_id !== undefined || process.env.PALSERVER_MANAGED === "1";
+}
+
 /** process.platform → release 資產名稱裡的平台字樣(見 .github/workflows/release.yml)。 */
 const ASSET_PLATFORM: Record<string, string> = {
   win32: "windows",
@@ -475,7 +482,7 @@ export function restartSelf(): boolean {
  * the replacement binary it already supervises.
  */
 function respawn(exePath: string): void {
-  if (process.env.pm_id !== undefined) {
+  if (isProcessManagerManaged()) {
     setTimeout(() => process.exit(0), 500).unref();
     return;
   }

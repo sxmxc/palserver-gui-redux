@@ -9,7 +9,7 @@ import cors from "@fastify/cors";
 import websocket from "@fastify/websocket";
 import fastifyStatic from "@fastify/static";
 import { ZodError } from "zod";
-import { detectVpn } from "@palserver/shared";
+import { detectVpn, WorldSettingsSchema } from "@palserver/shared";
 import { DATA_DIR, HOST, PORT, AGENT_VERSION, REQUIRE_TOKEN, WEB_ORIGINS, TLS_ENABLED, OPEN_BROWSER, IS_PORTABLE_EXE } from "./env.js";
 import {
   loadOrCreateToken,
@@ -19,20 +19,23 @@ import {
   type AuthContext,
 } from "./auth.js";
 import { loadOrCreateTlsCert } from "./tls.js";
-import { InstanceStore } from "./store.js";
+import { InstanceStore, type InstanceRecord } from "./store.js";
 import { PresenceTracker } from "./presence.js";
 import { BackupScheduler } from "./backup-scheduler.js";
 import { RestartSupervisor } from "./supervisor.js";
 import { PublicMapPublisher } from "./public-map.js";
 import { fetchLatest } from "./version.js";
-import { isInstalling, nativeDriver } from "./native.js";
-import { dockerDriver } from "./docker.js";
+import { detectManualIniEdits, isInstalling, nativeDriver } from "./native.js";
+import { detectManualIniEdits as detectDockerManualIniEdits, dockerDriver } from "./docker.js";
 import { k8sDriver } from "./k8s.js";
+import { readFileInPod } from "./k8s-files.js";
+import { configPlatformDir } from "./platform.js";
+import { diffIniTextAgainstSnapshot } from "./settings-ini.js";
 import { registerRoutes } from "./routes.js";
 import { startAutoScanLoop } from "./save-tools.js";
 import { activeWorldGuidAsync } from "./saves.js";
 import { announceBoot, trackPlayers } from "./telemetry.js";
-import { cleanupOldBinaries, startUpdateChecker, type UpdateOps } from "./self-update.js";
+import { cleanupOldBinaries, isProcessManagerManaged, startUpdateChecker, type UpdateOps } from "./self-update.js";
 import { refreshLicense } from "./license.js";
 import { startTray } from "./tray.js";
 
@@ -49,7 +52,7 @@ if (
   IS_PORTABLE_EXE &&
   !process.env.PALSERVER_TRAY_CHILD &&
   !process.env.PALSERVER_CONSOLE &&
-  process.env.pm_id === undefined &&
+  !isProcessManagerManaged() &&
   resolveWebDist() !== null
 ) {
   try {
@@ -207,13 +210,44 @@ await app.listen({ host: HOST, port: PORT });
 
 startUpdateChecker(updateOps);
 
-// 標記了「自動啟動」的伺服器:agent 一起來就開服(搭配登入自啟 = 主機開機即開服)。
-// 逐台嘗試,單台失敗(埠占用/檔案問題)寫日誌但不影響其他台。
+/**
+ * Import manual PalWorldSettings.ini edits before an automatic start. Normal
+ * start/restart routes already reconcile these edits; without this equivalent
+ * boot-time step, auto-start would render stored defaults over edits such as
+ * bEnableInvaderEnemy (Raid Events).
+ */
+const reconcileWorldIniBeforeAutoStart = async (rec: InstanceRecord): Promise<InstanceRecord> => {
+  const instanceDir = store.instanceDir(rec.id);
+  let patch;
+  if (rec.backend === "native") {
+    patch = detectManualIniEdits(rec, { instanceDir });
+  } else if (rec.backend === "docker") {
+    patch = detectDockerManualIniEdits(instanceDir);
+  } else {
+    const ini = await readFileInPod(
+      rec,
+      `Pal/Saved/Config/${configPlatformDir(rec)}/PalWorldSettings.ini`,
+    ).catch(() => null);
+    if (ini === null) return rec;
+    const snapshot = fs.existsSync(path.join(instanceDir, "world-applied.json"))
+      ? fs.readFileSync(path.join(instanceDir, "world-applied.json"), "utf8")
+      : null;
+    patch = diffIniTextAgainstSnapshot(ini, snapshot);
+  }
+  if (Object.keys(patch).length === 0) return rec;
+  return store.update(rec.id, {
+    settings: WorldSettingsSchema.parse({ ...rec.settings, ...patch }),
+  });
+};
+
+// Auto-start instances when the agent launches. Each instance is isolated so a
+// bad port or filesystem state cannot prevent the others from starting.
 void (async () => {
-  for (const rec of store.list()) {
+  for (let rec of store.list()) {
     if (!rec.autoStart) continue;
-    const driver = rec.backend === "native" ? nativeDriver : rec.backend === "k8s" ? k8sDriver : dockerDriver;
     try {
+      rec = await reconcileWorldIniBeforeAutoStart(rec);
+      const driver = rec.backend === "native" ? nativeDriver : rec.backend === "k8s" ? k8sDriver : dockerDriver;
       const { status } = await driver.status(rec, { instanceDir: store.instanceDir(rec.id) });
       if (status === "running" || status === "restarting" || status === "installing") continue;
       app.log.info(`Automatically starting server: ${rec.name}`);

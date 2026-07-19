@@ -182,6 +182,7 @@ The agent has exactly one door: **loopback is unauthenticated; everything else n
 | `PALSERVER_TLS` | unset | `=1` serves HTTPS (self-signed cert auto-generated under `<data-dir>/tls`; bring your own if you like) |
 | `PALSERVER_WEB_ORIGINS` | empty | Comma-separated web origins allowed cross-origin, for standalone public web deployments |
 | `PALSERVER_AUTO_UPDATE` | unset | `=0` disables GUI self-update entirely (not even checks) |
+| `PALSERVER_MANAGED` | unset | Set to `1` when PM2 or another process manager owns restarts; the updater exits and lets the manager restart it instead of spawning a second agent. |
 | `PALSERVER_TELEMETRY` | unset | `=0` force-disables anonymous usage stats |
 | `PALSERVER_STATS_URL` | official endpoint | Point at your own stats backend |
 | `PALSERVER_GITHUB_REPO` | `sxmxc/palserver-gui-redux` | Which repo's Releases self-update watches |
