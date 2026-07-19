@@ -87,7 +87,7 @@ async function download(url: string, dest: string, onProgress?: (pct: number) =>
     redirect: "follow",
   });
   if (res.status === 404) {
-    throw new Error(`健檢工具尚未發佈(release ${PALSAV_TAG} 找不到資產)— 請先跑 palsav-tools workflow`);
+    throw new Error(`Save-analysis tools have not been published (asset missing from release ${PALSAV_TAG}). Run the palsav-tools workflow first.`);
   }
   if (!res.ok || !res.body) throw new Error(`下載健檢工具失敗:HTTP ${res.status}`);
   const total = Number(res.headers.get("content-length") ?? 0);

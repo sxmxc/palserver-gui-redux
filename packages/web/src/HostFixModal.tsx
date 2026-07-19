@@ -86,6 +86,11 @@ export function HostFixModal({
                 {t("已一併把 {n} 隻帕魯的擁有者過戶到新 ID(修掉共玩殘留的歸屬)。", { n: done.patchedPalOwners })}
               </p>
             )}
+            {done.patchedGuildHandles + done.patchedGuildAdmins + done.patchedGuildMembers > 0 && (
+              <p className="text-[13px] text-ink-muted">
+                {t("已一併移轉公會角色、成員與會長資料，讓原本公會擁有的據點繼續歸你使用。")}
+              </p>
+            )}
             <p className="text-[13px] text-ink-muted">
               {t("修復前已自動備份:{backup}(出問題可在下方備份清單一鍵還原)。", { backup: done.backup })}
             </p>

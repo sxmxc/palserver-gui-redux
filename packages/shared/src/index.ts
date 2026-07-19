@@ -609,6 +609,12 @@ export interface HostFixResult {
   patchedLevelEntries: number;
   /** 一併過戶的帕魯數(OwnerPlayerUId 由舊 uid 改為新 uid)。 */
   patchedPalOwners: number;
+  /** 公會角色控制代碼由舊 uid 改為新 uid 的數量。 */
+  patchedGuildHandles: number;
+  /** 公會會長 uid 由舊 uid 改為新 uid 的數量。 */
+  patchedGuildAdmins: number;
+  /** 公會成員 uid 由舊 uid 改為新 uid 的數量。 */
+  patchedGuildMembers: number;
   /** 修復前自動備份的檔名。 */
   backup: string;
 }

@@ -19,9 +19,9 @@ import { oodleDecompress } from "./oodle.js";
  * 格式依據:cheahjs/palworld-save-tools 的 palsav.py(容器)與 archive.py(UUID 位元組序),
  * 已用該 repo 的真實測試存檔(共玩主機玩家檔 + Level.sav)驗證錨點命中。
  *
- * 範圍:等同參考工具 guild_fix=False 的主路徑。公會欄位修補(參考工具自己
- * 都標 experimental 且有已知 bug)不做 —— 公會異常時的解法同官方建議:
- * 該玩家退出公會再重新加入。
+ * Scope: transfers the matching Guild character handle, leader, and roster entry
+ * in addition to the player record and Pal ownership. Guild raw data is parsed
+ * and fully validated before any ID is patched.
  */
 
 /* ── 存檔容器:PlZ(zlib,舊版)與 PlM(Oodle,新版)── */
@@ -130,6 +130,159 @@ function findGuidProps(data: Buffer, propName: string): GuidProp[] {
   return out;
 }
 
+interface ByteArrayProp {
+  /** Start and length of a raw ByteProperty array's payload. */
+  offset: number;
+  length: number;
+}
+
+/** Locate an unlabelled ArrayProperty<ByteProperty> by its property name. */
+function findByteArrayProps(data: Buffer, propName: string): ByteArrayProp[] {
+  const anchor = Buffer.concat([fstr(propName), fstr("ArrayProperty")]);
+  const byteType = fstr("ByteProperty");
+  const out: ByteArrayProp[] = [];
+  let idx = 0;
+  while ((idx = data.indexOf(anchor, idx)) !== -1) {
+    let p = idx + anchor.length;
+    idx += anchor.length;
+    if (p + 8 + byteType.length + 1 + 4 > data.length) continue;
+    const size = Number(data.readBigUInt64LE(p));
+    p += 8;
+    if (Buffer.compare(data.subarray(p, p + byteType.length), byteType) !== 0) continue;
+    p += byteType.length;
+    const hasId = data[p++];
+    if (hasId === 1) p += 16;
+    else if (hasId !== 0) continue;
+    if (p + 4 > data.length) continue;
+    const length = data.readUInt32LE(p);
+    p += 4;
+    if (size !== length + 4 || p + length > data.length) continue;
+    out.push({ offset: p, length });
+  }
+  return out;
+}
+
+/** Advance through an Unreal FString without decoding it. */
+function skipFString(data: Buffer, offset: number, end: number): number | null {
+  if (offset + 4 > end) return null;
+  const length = data.readInt32LE(offset);
+  if (length === 0) return offset + 4;
+  const bytes = length > 0 ? length : -length * 2;
+  const next = offset + 4 + bytes;
+  return bytes > 0 && next <= end ? next : null;
+}
+
+interface GuildPatch {
+  handleOffsets: number[];
+  adminOffsets: number[];
+  memberOffsets: number[];
+}
+
+/**
+ * Decode just enough of GroupSaveDataMap.RawData to identify a Guild record.
+ * Values are replaced in place only after the whole record is validated, which
+ * keeps this binary patch limited to the player's own guild reference.
+ */
+function inspectGuildRawData(raw: Buffer, oldRaw: Buffer, instanceRaw: Buffer): GuildPatch | null {
+  let p = 0;
+  const end = raw.length;
+  const take = (bytes: number): number | null => {
+    if (bytes < 0 || p + bytes > end) return null;
+    const at = p;
+    p += bytes;
+    return at;
+  };
+  const readCount = (itemBytes: number): number | null => {
+    if (p + 4 > end) return null;
+    const count = raw.readUInt32LE(p);
+    p += 4;
+    return count <= Math.floor((end - p) / itemBytes) ? count : null;
+  };
+
+  if (take(16) === null) return null; // group_id
+  const groupNameEnd = skipFString(raw, p, end);
+  if (groupNameEnd === null) return null;
+  p = groupNameEnd;
+
+  const handleCount = readCount(32);
+  if (handleCount === null) return null;
+  const handleOffsets: number[] = [];
+  for (let i = 0; i < handleCount; i++) {
+    const guidOffset = take(16);
+    const instanceOffset = take(16);
+    if (guidOffset === null || instanceOffset === null) return null;
+    if (
+      Buffer.compare(raw.subarray(guidOffset, guidOffset + 16), oldRaw) === 0 &&
+      Buffer.compare(raw.subarray(instanceOffset, instanceOffset + 16), instanceRaw) === 0
+    ) {
+      handleOffsets.push(guidOffset);
+    }
+  }
+
+  // This is the Guild/IndependentGuild/Organization extension.
+  if (take(1) === null) return null; // org_type
+  const baseCount = readCount(16);
+  if (baseCount === null || take(baseCount * 16) === null) return null;
+
+  // A Guild has the following base and roster fields. Requiring the exact end
+  // position prevents us from mistaking another RawData blob for a guild.
+  if (take(4) === null) return null; // base_camp_level
+  const mapObjectCount = readCount(16);
+  if (mapObjectCount === null || take(mapObjectCount * 16) === null) return null;
+  const guildNameEnd = skipFString(raw, p, end);
+  if (guildNameEnd === null) return null;
+  p = guildNameEnd;
+
+  const adminOffset = take(16);
+  if (adminOffset === null) return null;
+  const playerCount = readCount(24); // Guid + int64 last-online timestamp, before FString
+  if (playerCount === null) return null;
+  const memberOffsets: number[] = [];
+  for (let i = 0; i < playerCount; i++) {
+    const uidOffset = take(16);
+    if (uidOffset === null || take(8) === null) return null;
+    const playerNameEnd = skipFString(raw, p, end);
+    if (playerNameEnd === null) return null;
+    p = playerNameEnd;
+    if (Buffer.compare(raw.subarray(uidOffset, uidOffset + 16), oldRaw) === 0) memberOffsets.push(uidOffset);
+  }
+  if (p !== end || handleOffsets.length === 0) return null;
+
+  return {
+    handleOffsets,
+    adminOffsets: Buffer.compare(raw.subarray(adminOffset, adminOffset + 16), oldRaw) === 0 ? [adminOffset] : [],
+    memberOffsets,
+  };
+}
+
+function patchGuildOwnership(data: Buffer, oldRaw: Buffer, newRaw: Buffer, instanceRaw: Buffer): {
+  patchedGuildHandles: number;
+  patchedGuildAdmins: number;
+  patchedGuildMembers: number;
+} {
+  let patchedGuildHandles = 0;
+  let patchedGuildAdmins = 0;
+  let patchedGuildMembers = 0;
+  for (const prop of findByteArrayProps(data, "RawData")) {
+    const raw = data.subarray(prop.offset, prop.offset + prop.length);
+    const patch = inspectGuildRawData(raw, oldRaw, instanceRaw);
+    if (!patch) continue;
+    for (const offset of patch.handleOffsets) {
+      newRaw.copy(raw, offset);
+      patchedGuildHandles += 1;
+    }
+    for (const offset of patch.adminOffsets) {
+      newRaw.copy(raw, offset);
+      patchedGuildAdmins += 1;
+    }
+    for (const offset of patch.memberOffsets) {
+      newRaw.copy(raw, offset);
+      patchedGuildMembers += 1;
+    }
+  }
+  return { patchedGuildHandles, patchedGuildAdmins, patchedGuildMembers };
+}
+
 function fail(message: string, statusCode = 400): Error & { statusCode: number } {
   return Object.assign(new Error(message), { statusCode });
 }
@@ -227,12 +380,23 @@ export async function applyHostFix(
   const owners = findGuidProps(level.data, "OwnerPlayerUId").filter((p) => p.uuid === oldUid);
   for (const p of owners) newRaw.copy(level.data, p.offset);
 
+  // Guilds own base camps. Move the matching character handle, guild leader,
+  // and roster member from the old player ID to the new one. The group blob is
+  // fully validated before it is changed; unrelated guilds stay untouched.
+  const guild = patchGuildOwnership(level.data, oldRaw, newRaw, instRaw);
+
   // ── 寫回:玩家檔內容落到 <新Uid>.sav(覆蓋加入時產生的空角色),刪舊檔;Level.sav 原地覆寫。
   fs.writeFileSync(newPath, compressSav(oldPlayer.data, oldPlayer.saveType));
   fs.rmSync(oldPath, { force: true });
   fs.writeFileSync(levelPath, compressSav(level.data, level.saveType));
 
-  return { oldUid, newUid, patchedLevelEntries: targets.length, patchedPalOwners: owners.length };
+  return {
+    oldUid,
+    newUid,
+    patchedLevelEntries: targets.length,
+    patchedPalOwners: owners.length,
+    ...guild,
+  };
 }
 
 /**

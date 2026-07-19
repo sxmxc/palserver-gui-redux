@@ -342,7 +342,7 @@ async function pdFetch<T>(
     if (code) throw new PdRestError(PD_ERROR_MESSAGES[code] ?? `PalDefender returned an error (${code})`);
     if (res.status === 404) {
       throw new PdRestError(
-        "PalDefender 沒有這個 API 端點 — 你的 PalDefender 版本可能尚未支援玩家細節,或設定/權杖變更後需要「重啟伺服器一次」讓它生效。",
+        "PalDefender does not provide this API endpoint. Your version may not support player details yet, or a settings/token change may require restarting the server once to take effect.",
       );
     }
     if (res.status === 401) throw new PdRestError(PD_ERROR_MESSAGES.INVALID_TOKEN);
