@@ -46,6 +46,21 @@ export function HostFixModal({
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<HostFixResult | null>(null);
 
+  const repairGuild = async () => {
+    if (!picked) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const r = await client.repairGuildOwnership(instanceId, world.guid, picked);
+      setDone({ ...r, patchedLevelEntries: 0, patchedPalOwners: 0 });
+      onDone();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const run = async () => {
     if (!source || !picked || source === picked) return;
     setBusy(true);
@@ -123,8 +138,22 @@ export function HostFixModal({
             {running && <p className={errorCls}>{t("伺服器正在運行 — 請先停止再執行修復。")}</p>}
 
             {!hostSav ? (
-              candidates.length < 2 ? (
+              candidates.length === 0 ? (
                 <p className={errorCls}>{t("至少要有原本角色與新建立的角色各一個，才能移轉。")}</p>
+              ) : candidates.length === 1 ? (
+                <>
+                  <p className="text-[13px] leading-relaxed text-ink-muted">
+                    {t("角色已移轉，但據點仍在原本公會時，用這個修復。它會找出仍指向目前角色的舊公會資料，把據點、公會成員與會長歸屬移到你身上；執行前會自動備份。")}
+                  </p>
+                  <p className="font-mono text-xs font-bold break-all">{candidates[0].playerUid}</p>
+                  {error && <p className={errorCls}>{error}</p>}
+                  <div className="flex gap-2">
+                    <button className={btn + " inline-flex items-center gap-1.5"} onClick={repairGuild} disabled={busy || running || !picked}>
+                      <FiTool className="size-4" /> {busy ? t("修復中…") : t("修復公會與據點歸屬")}
+                    </button>
+                    <button className={btnGhost} onClick={onClose} disabled={busy}>{t("取消")}</button>
+                  </div>
+                </>
               ) : (
                 <>
                   <p className="text-[13px] font-bold text-ink-muted">{t("原本的角色(要保留)")}</p>

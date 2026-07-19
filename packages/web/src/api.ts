@@ -847,6 +847,17 @@ export class AgentClient {
     });
   }
 
+  repairGuildOwnership(
+    id: string,
+    worldGuid: string,
+    toSav: string,
+  ): Promise<{ oldUid: string; newUid: string; patchedGuildHandles: number; patchedGuildAdmins: number; patchedGuildMembers: number; backup: string }> {
+    return this.request(`/api/instances/${id}/saves/guild-owner-fix`, {
+      method: "POST",
+      body: JSON.stringify({ worldGuid, toSav }),
+    });
+  }
+
   inspectImportSave(sourcePath: string): Promise<{ worlds: ExternalWorldCandidate[] }> {
     return this.request("/api/import-save/inspect", {
       method: "POST",

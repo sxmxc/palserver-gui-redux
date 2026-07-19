@@ -1714,5 +1714,7 @@
   "執行移轉": "Transfer character",
   "移轉完成!原本角色已過戶給新 ID。": "Done! The original character has been transferred to the new ID.",
   "移轉匯入玩家角色，或修復共玩存檔的帕魯歸屬": "Transfer an imported player character, or repair Pal ownership for a co-op save.",
-  "已一併移轉公會角色、成員與會長資料，讓原本公會擁有的據點繼續歸你使用。": "Guild character, member, and leader records were transferred too, so you retain access to the bases owned by that guild."
+  "已一併移轉公會角色、成員與會長資料，讓原本公會擁有的據點繼續歸你使用。": "Guild character, member, and leader records were transferred too, so you retain access to the bases owned by that guild.",
+  "角色已移轉，但據點仍在原本公會時，用這個修復。它會找出仍指向目前角色的舊公會資料，把據點、公會成員與會長歸屬移到你身上；執行前會自動備份。": "Use this when the character was transferred but the bases remain in the original guild. It finds the old guild record still linked to this character and transfers its base, member, and leader ownership to you. A backup is made first.",
+  "修復公會與據點歸屬": "Repair guild and base ownership"
 }

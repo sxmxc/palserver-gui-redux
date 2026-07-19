@@ -83,7 +83,7 @@ import {
   startHealthCheck,
   writeAutoScan,
 } from "./save-tools.js";
-import { applyHostFix, transferPalOwners } from "./host-save-fix.js";
+import { applyHostFix, repairTransferredGuildOwnership, transferPalOwners } from "./host-save-fix.js";
 import { getEngineSettings, writeEngineSettings } from "./engine-ini.js";
 import { getConfigHealth, regenerateConfig } from "./config-health.js";
 import {
@@ -2247,6 +2247,23 @@ export function registerRoutes(
     // 改壞角色無法復原 — 修復前強制留一份世界備份。
     const backup = await saves.createBackup(rec, ctxOf(rec), worldGuid);
     const result = await applyHostFix(saves.worldDirOf(rec, ctxOf(rec), worldGuid), oldSav, newSav);
+    return { ...result, backup: backup.name };
+  });
+
+  // ── 已完成角色移轉後的公會/據點修復──
+  app.post("/api/instances/:id/saves/guild-owner-fix", async (req) => {
+    const rec = getOr404((req.params as { id: string }).id);
+    const { worldGuid, toSav } = z
+      .object({
+        worldGuid: z.string().regex(/^[A-Za-z0-9_-]{1,64}$/, "Invalid world GUID"),
+        toSav: z.string().regex(/^[0-9A-Fa-f]{32}\.sav$/, "Invalid player save filename"),
+      })
+      .parse(req.body);
+    if (await isRunning(rec)) {
+      throw Object.assign(new Error("Stop the server before repairing guild ownership"), { statusCode: 409 });
+    }
+    const backup = await saves.createBackup(rec, ctxOf(rec), worldGuid);
+    const result = await repairTransferredGuildOwnership(saves.worldDirOf(rec, ctxOf(rec), worldGuid), toSav);
     return { ...result, backup: backup.name };
   });
 

@@ -172,115 +172,226 @@ function skipFString(data: Buffer, offset: number, end: number): number | null {
   return bytes > 0 && next <= end ? next : null;
 }
 
-interface GuildPatch {
-  handleOffsets: number[];
-  adminOffsets: number[];
+interface GuildHandle {
+  uidOffset: number;
+  uid: Buffer;
+  instance: Buffer;
+}
+
+interface GuildRecord {
+  handles: GuildHandle[];
+  adminOffset: number;
   memberOffsets: number[];
+  metadataOffsets: number[];
 }
 
 /**
- * Decode just enough of GroupSaveDataMap.RawData to identify a Guild record.
- * Values are replaced in place only after the whole record is validated, which
- * keeps this binary patch limited to the player's own guild reference.
+ * Decode the Guild RawData layouts supported by palsav-flex. The July 2026
+ * format has an extended guild tail (roles, permissions, and markers); older
+ * records use the legacy layout. A candidate is accepted only when it ends
+ * exactly at the end of its RawData blob.
  */
-function inspectGuildRawData(raw: Buffer, oldRaw: Buffer, instanceRaw: Buffer): GuildPatch | null {
-  let p = 0;
+function inspectGuildRawData(raw: Buffer): GuildRecord | null {
   const end = raw.length;
-  const take = (bytes: number): number | null => {
-    if (bytes < 0 || p + bytes > end) return null;
-    const at = p;
-    p += bytes;
+  const take = (state: { p: number }, bytes: number): number | null => {
+    if (bytes < 0 || state.p + bytes > end) return null;
+    const at = state.p;
+    state.p += bytes;
     return at;
   };
-  const readCount = (itemBytes: number): number | null => {
-    if (p + 4 > end) return null;
-    const count = raw.readUInt32LE(p);
-    p += 4;
-    return count <= Math.floor((end - p) / itemBytes) ? count : null;
+  const readCount = (state: { p: number }, itemBytes: number): number | null => {
+    if (state.p + 4 > end) return null;
+    const count = raw.readUInt32LE(state.p);
+    state.p += 4;
+    return count <= Math.floor((end - state.p) / itemBytes) ? count : null;
+  };
+  const readHandles = (state: { p: number }): GuildHandle[] | null => {
+    if (take(state, 16) === null) return null; // group_id
+    const groupNameEnd = skipFString(raw, state.p, end);
+    if (groupNameEnd === null) return null;
+    state.p = groupNameEnd;
+    const count = readCount(state, 32);
+    if (count === null) return null;
+    const handles: GuildHandle[] = [];
+    for (let i = 0; i < count; i++) {
+      const uidOffset = take(state, 16);
+      const instanceOffset = take(state, 16);
+      if (uidOffset === null || instanceOffset === null) return null;
+      handles.push({
+        uidOffset,
+        uid: raw.subarray(uidOffset, uidOffset + 16),
+        instance: raw.subarray(instanceOffset, instanceOffset + 16),
+      });
+    }
+    if (take(state, 1) === null) return null; // org_type
+    return handles;
+  };
+  const readPlayers = (state: { p: number }, withRole: boolean): number[] | null => {
+    const count = readCount(state, withRole ? 25 : 24);
+    if (count === null) return null;
+    const out: number[] = [];
+    for (let i = 0; i < count; i++) {
+      const uidOffset = take(state, 16);
+      if (uidOffset === null || take(state, 8) === null) return null;
+      const nameEnd = skipFString(raw, state.p, end);
+      if (nameEnd === null) return null;
+      state.p = nameEnd;
+      if (withRole && take(state, 1) === null) return null;
+      out.push(uidOffset);
+    }
+    return out;
+  };
+  const finishModernTail = (state: { p: number }, handles: GuildHandle[], metadataOffsets: number[]): GuildRecord | null => {
+    const roles = readCount(state, 1);
+    if (roles === null || take(state, roles) === null || take(state, 4) === null) return null;
+    const adminOffset = take(state, 16);
+    if (adminOffset === null) return null;
+    const memberOffsets = readPlayers(state, true);
+    if (memberOffsets === null) return null;
+    const permissionCount = readCount(state, 5);
+    if (permissionCount === null) return null;
+    for (let i = 0; i < permissionCount; i++) {
+      if (take(state, 1) === null) return null;
+      const count = readCount(state, 1);
+      if (count === null || take(state, count) === null) return null;
+    }
+    if (take(state, 4) === null || state.p !== end) return null;
+    return { handles, adminOffset, memberOffsets, metadataOffsets };
+  };
+  const finishOldTail = (state: { p: number }, handles: GuildHandle[], metadataOffsets: number[]): GuildRecord | null => {
+    const adminOffset = take(state, 16);
+    if (adminOffset === null) return null;
+    const memberOffsets = readPlayers(state, false);
+    if (memberOffsets === null || take(state, 4) === null || state.p !== end) return null;
+    return { handles, adminOffset, memberOffsets, metadataOffsets };
   };
 
-  if (take(16) === null) return null; // group_id
-  const groupNameEnd = skipFString(raw, p, end);
-  if (groupNameEnd === null) return null;
-  p = groupNameEnd;
-
-  const handleCount = readCount(32);
-  if (handleCount === null) return null;
-  const handleOffsets: number[] = [];
-  for (let i = 0; i < handleCount; i++) {
-    const guidOffset = take(16);
-    const instanceOffset = take(16);
-    if (guidOffset === null || instanceOffset === null) return null;
-    if (
-      Buffer.compare(raw.subarray(guidOffset, guidOffset + 16), oldRaw) === 0 &&
-      Buffer.compare(raw.subarray(instanceOffset, instanceOffset + 16), instanceRaw) === 0
-    ) {
-      handleOffsets.push(guidOffset);
+  // Current palsav-flex guild layout (including the 2026-07 guild roles).
+  {
+    const state = { p: 0 };
+    const handles = readHandles(state);
+    if (handles) {
+      const metadataOffsets: number[] = [];
+      if (take(state, 4) !== null) { // leading_bytes
+        const baseCount = readCount(state, 16);
+        if (baseCount !== null && take(state, baseCount * 16) !== null && take(state, 8) !== null) {
+          const pointsCount = readCount(state, 16);
+          if (pointsCount !== null && take(state, pointsCount * 16) !== null) {
+            const guildNameEnd = skipFString(raw, state.p, end);
+            if (guildNameEnd !== null) {
+              state.p = guildNameEnd;
+              const lastModifier = take(state, 16);
+              if (lastModifier !== null) {
+                metadataOffsets.push(lastModifier);
+                const markerCount = readCount(state, 60);
+                if (markerCount !== null) {
+                  let markersOk = true;
+                  for (let i = 0; i < markerCount; i++) {
+                    if (take(state, 44) === null || take(state, 4) === null) {
+                      markersOk = false;
+                      break;
+                    }
+                    const markerOwner = take(state, 16);
+                    if (markerOwner === null) {
+                      markersOk = false;
+                      break;
+                    }
+                    metadataOffsets.push(markerOwner);
+                  }
+                  if (markersOk) {
+                    const modernStart = { p: state.p };
+                    const modern = finishModernTail(modernStart, handles, metadataOffsets);
+                    if (modern) return modern;
+                    const old = finishOldTail({ p: state.p }, handles, metadataOffsets);
+                    if (old) return old;
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   }
 
-  // This is the Guild/IndependentGuild/Organization extension.
-  if (take(1) === null) return null; // org_type
-  const baseCount = readCount(16);
-  if (baseCount === null || take(baseCount * 16) === null) return null;
-
-  // A Guild has the following base and roster fields. Requiring the exact end
-  // position prevents us from mistaking another RawData blob for a guild.
-  if (take(4) === null) return null; // base_camp_level
-  const mapObjectCount = readCount(16);
-  if (mapObjectCount === null || take(mapObjectCount * 16) === null) return null;
-  const guildNameEnd = skipFString(raw, p, end);
-  if (guildNameEnd === null) return null;
-  p = guildNameEnd;
-
-  const adminOffset = take(16);
-  if (adminOffset === null) return null;
-  const playerCount = readCount(24); // Guid + int64 last-online timestamp, before FString
-  if (playerCount === null) return null;
-  const memberOffsets: number[] = [];
-  for (let i = 0; i < playerCount; i++) {
-    const uidOffset = take(16);
-    if (uidOffset === null || take(8) === null) return null;
-    const playerNameEnd = skipFString(raw, p, end);
-    if (playerNameEnd === null) return null;
-    p = playerNameEnd;
-    if (Buffer.compare(raw.subarray(uidOffset, uidOffset + 16), oldRaw) === 0) memberOffsets.push(uidOffset);
+  // Legacy Guild layout retained for old worlds.
+  {
+    const state = { p: 0 };
+    const handles = readHandles(state);
+    if (handles) {
+      const baseCount = readCount(state, 16);
+      if (baseCount !== null && take(state, baseCount * 16) !== null && take(state, 4) !== null) {
+        const pointsCount = readCount(state, 16);
+        if (pointsCount !== null && take(state, pointsCount * 16) !== null) {
+          const guildNameEnd = skipFString(raw, state.p, end);
+          if (guildNameEnd !== null) {
+            state.p = guildNameEnd;
+            const old = finishOldTail(state, handles, []);
+            if (old) return old;
+          }
+        }
+      }
+    }
   }
-  if (p !== end || handleOffsets.length === 0) return null;
-
-  return {
-    handleOffsets,
-    adminOffsets: Buffer.compare(raw.subarray(adminOffset, adminOffset + 16), oldRaw) === 0 ? [adminOffset] : [],
-    memberOffsets,
-  };
+  return null;
 }
 
-function patchGuildOwnership(data: Buffer, oldRaw: Buffer, newRaw: Buffer, instanceRaw: Buffer): {
-  patchedGuildHandles: number;
-  patchedGuildAdmins: number;
-  patchedGuildMembers: number;
-} {
+function sameRawId(a: Buffer, b: Buffer): boolean {
+  return Buffer.compare(a, b) === 0;
+}
+
+function patchGuildOwnership(
+  data: Buffer,
+  oldRaw: Buffer,
+  newRaw: Buffer,
+  instanceRaws: readonly Buffer[],
+): { patchedGuildHandles: number; patchedGuildAdmins: number; patchedGuildMembers: number } {
   let patchedGuildHandles = 0;
   let patchedGuildAdmins = 0;
   let patchedGuildMembers = 0;
   for (const prop of findByteArrayProps(data, "RawData")) {
     const raw = data.subarray(prop.offset, prop.offset + prop.length);
-    const patch = inspectGuildRawData(raw, oldRaw, instanceRaw);
-    if (!patch) continue;
-    for (const offset of patch.handleOffsets) {
-      newRaw.copy(raw, offset);
+    const guild = inspectGuildRawData(raw);
+    if (!guild) continue;
+    const handles = guild.handles.filter((h) => sameRawId(h.uid, oldRaw) && instanceRaws.some((i) => sameRawId(h.instance, i)));
+    if (handles.length === 0) continue;
+    for (const handle of handles) {
+      newRaw.copy(raw, handle.uidOffset);
       patchedGuildHandles += 1;
     }
-    for (const offset of patch.adminOffsets) {
-      newRaw.copy(raw, offset);
+    if (sameRawId(raw.subarray(guild.adminOffset, guild.adminOffset + 16), oldRaw)) {
+      newRaw.copy(raw, guild.adminOffset);
       patchedGuildAdmins += 1;
     }
-    for (const offset of patch.memberOffsets) {
-      newRaw.copy(raw, offset);
-      patchedGuildMembers += 1;
+    for (const offset of [...guild.memberOffsets, ...guild.metadataOffsets]) {
+      if (sameRawId(raw.subarray(offset, offset + 16), oldRaw)) {
+        newRaw.copy(raw, offset);
+        if (guild.memberOffsets.includes(offset)) patchedGuildMembers += 1;
+      }
     }
   }
   return { patchedGuildHandles, patchedGuildAdmins, patchedGuildMembers };
+}
+
+function playerInstanceRaws(data: Buffer, playerUid: string): Buffer[] {
+  const instanceAnchor = Buffer.concat([fstr("InstanceId"), STRUCT_PROP]);
+  const seen = new Set<string>();
+  const out: Buffer[] = [];
+  for (const uid of findGuidProps(data, "PlayerUId")) {
+    if (uid.uuid !== playerUid) continue;
+    const window = data.subarray(uid.offset + 16, Math.min(uid.offset + 16 + 512, data.length));
+    const rel = window.indexOf(instanceAnchor);
+    if (rel < 0) continue;
+    const offset = uid.offset + 16 + rel + instanceAnchor.length + 8 + GUID_TYPE.length + 16 + 1;
+    if (offset + 16 > data.length) continue;
+    const raw = data.subarray(offset, offset + 16);
+    const key = raw.toString("hex");
+    if (!seen.has(key)) {
+      seen.add(key);
+      out.push(raw);
+    }
+  }
+  return out;
 }
 
 function fail(message: string, statusCode = 400): Error & { statusCode: number } {
@@ -383,7 +494,7 @@ export async function applyHostFix(
   // Guilds own base camps. Move the matching character handle, guild leader,
   // and roster member from the old player ID to the new one. The group blob is
   // fully validated before it is changed; unrelated guilds stay untouched.
-  const guild = patchGuildOwnership(level.data, oldRaw, newRaw, instRaw);
+  const guild = patchGuildOwnership(level.data, oldRaw, newRaw, [instRaw]);
 
   // ── 寫回:玩家檔內容落到 <新Uid>.sav(覆蓋加入時產生的空角色),刪舊檔;Level.sav 原地覆寫。
   fs.writeFileSync(newPath, compressSav(oldPlayer.data, oldPlayer.saveType));
@@ -397,6 +508,63 @@ export async function applyHostFix(
     patchedPalOwners: owners.length,
     ...guild,
   };
+}
+
+/**
+ * Repair guild/base ownership after a character transfer that was already
+ * completed. The old player file is gone, so the source ID is inferred only
+ * from a guild character handle that points to one of the active player's
+ * Level.sav character instances. Ambiguous worlds are rejected safely.
+ */
+export async function repairTransferredGuildOwnership(
+  worldDir: string,
+  toSavName: string,
+): Promise<{
+  oldUid: string;
+  newUid: string;
+  patchedGuildHandles: number;
+  patchedGuildAdmins: number;
+  patchedGuildMembers: number;
+}> {
+  if (!SAV_NAME_RE.test(toSavName)) throw fail("Target player save filename is invalid", 422);
+  const newUid = savNameToUuid(toSavName);
+  const targetPath = path.join(worldDir, "Players", toSavName);
+  const levelPath = path.join(worldDir, "Level.sav");
+  if (!fs.existsSync(targetPath)) throw fail("Target player save " + toSavName + " was not found", 404);
+  if (!fs.existsSync(levelPath)) throw fail("Level.sav was not found", 404);
+
+  const level = await decompressSav(fs.readFileSync(levelPath));
+  const instances = playerInstanceRaws(level.data, newUid);
+  if (instances.length === 0) {
+    throw fail("Could not find this player's Level.sav character record. Run a save scan after the player has joined once.", 422);
+  }
+  const newRaw = uuidToRaw(newUid);
+  const candidates = new Map<string, Buffer>();
+  for (const prop of findByteArrayProps(level.data, "RawData")) {
+    const raw = level.data.subarray(prop.offset, prop.offset + prop.length);
+    const guild = inspectGuildRawData(raw);
+    if (!guild) continue;
+    for (const handle of guild.handles) {
+      if (!sameRawId(handle.uid, newRaw) && instances.some((instance) => sameRawId(handle.instance, instance))) {
+        candidates.set(handle.uid.toString("hex"), Buffer.from(handle.uid));
+      }
+    }
+  }
+  if (candidates.size !== 1) {
+    throw fail(
+      candidates.size === 0
+        ? "Could not identify the old guild owner for this transferred character. Restore the automatic pre-transfer backup and run the transfer again."
+        : "More than one old guild owner matches this character. Restore the automatic pre-transfer backup and run the transfer again.",
+      422,
+    );
+  }
+  const oldRaw = [...candidates.values()][0];
+  const patch = patchGuildOwnership(level.data, oldRaw, newRaw, instances);
+  if (patch.patchedGuildHandles === 0) {
+    throw fail("No matching guild character handle was changed", 422);
+  }
+  fs.writeFileSync(levelPath, compressSav(level.data, level.saveType));
+  return { oldUid: rawToUuid(oldRaw), newUid, ...patch };
 }
 
 /**
